@@ -22,6 +22,14 @@ public class Researcher implements IMapPlaceable{
         return equipmentBag.add(equipment);
     }
 
+    public boolean useEquipment(Equipment equipment){
+        return equipmentBag.remove(equipment);
+    }
+
+    public boolean carryingResearchEquipment(){
+        return equipmentBag.hasResearchEquipment();
+    }
+
     public String getId(){
         return id;
     }

@@ -1,9 +1,21 @@
 package Objects;
 
-public abstract class Hazard {
-    public Hazard(){
+import Equipment.HazardEquipment;
 
+public abstract class Hazard {
+    HazardEquipment overcomeBy;
+    public Hazard(){
+        overcomeBy = null;
     }
+
+    public HazardEquipment getOvercomeBy() {
+        return overcomeBy;
+    }
+
+    public void setOvercomeBy(HazardEquipment overcomeBy) {
+        this.overcomeBy = overcomeBy;
+    }
+    
     @Override
     public boolean equals(Object other){
         // Check if the current object is the same as the passed object

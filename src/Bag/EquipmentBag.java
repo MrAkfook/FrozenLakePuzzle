@@ -31,6 +31,10 @@ public class EquipmentBag<T extends Equipment>{
 		return bag.getCurrentSize()==3;
 	}
 
+    public boolean hasResearchEquipment(){
+        return (bag.peek() instanceof ResearchEquipment);
+    }
+
 	public boolean remove(T anEntry) {
         return bag.remove(anEntry);
     }
