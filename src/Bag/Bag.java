@@ -54,6 +54,14 @@ public class Bag<T> implements IBag<T>{
 		return false;
 	}
 
+	public T peek(){
+		if(!isEmpty()) {
+			T x = this.bag[itemCount];
+			return x;
+		}
+		return null;
+	}
+
 	@Override
 	public T remove() {
 		if(!isEmpty()) {

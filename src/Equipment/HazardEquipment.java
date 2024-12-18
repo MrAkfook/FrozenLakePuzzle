@@ -1,5 +1,5 @@
 package Equipment;
 
-public abstract class HazardEquipment {
+public abstract class HazardEquipment extends Equipment{
 
 }
