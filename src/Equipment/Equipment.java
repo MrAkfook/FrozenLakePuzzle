@@ -1,5 +1,7 @@
 package Equipment;
 
-public class Equipment {
-
+public abstract class Equipment {
+   
+    @Override
+    public abstract boolean equals();
 }
