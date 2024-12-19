@@ -8,6 +8,10 @@ public abstract class Hazard {
         overcomeBy = null;
     }
 
+    public Hazard(Hazard other) {
+        this.overcomeBy = other.overcomeBy;
+    }
+
     public HazardEquipment getOvercomeBy() {
         return overcomeBy;
     }

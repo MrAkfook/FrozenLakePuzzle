@@ -8,6 +8,12 @@ public class CliffEdge extends Hazard implements IDangerousHazard{
         super();
         setOvercomeBy(new ClimbingEquipment());
     }
+    
+    public CliffEdge(CliffEdge other) {
+        super();
+        setOvercomeBy(other.getOvercomeBy());
+    }
+
     @Override
     public boolean equals(Object other){
         return super.equals(other);

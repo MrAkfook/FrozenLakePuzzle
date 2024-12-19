@@ -9,6 +9,12 @@ public class IceSpikes extends Hazard implements IDangerousHazard{
         super();
         setOvercomeBy(new ProtectiveHelmet());
     }
+
+    public IceSpikes(IceSpikes other) {
+        super();
+        setOvercomeBy(other.getOvercomeBy()); 
+    }
+
     @Override
     public boolean equals(Object other){
         return super.equals(other);

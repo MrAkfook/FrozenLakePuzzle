@@ -9,6 +9,11 @@ public class ChiselingEquipment extends ResearchEquipment{
         this.iceBlockWeight = Math.random() * 20; // Random ice block weight between 0 and 20
     }
 
+    public ChiselingEquipment(ChiselingEquipment other){
+        super();
+        this.iceBlockWeight = other.iceBlockWeight;
+    }
+
     public double getIceBlockWeight() {
         return iceBlockWeight;
     }

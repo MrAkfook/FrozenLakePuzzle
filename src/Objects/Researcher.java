@@ -18,6 +18,10 @@ public class Researcher implements IMapPlaceable{
         this("");
     }
 
+    public Researcher(Researcher other) {
+        this(other.getId()); 
+    }
+
     public boolean takeEquipment(Equipment equipment) throws IncorrectBagContentsException {
         return equipmentBag.add(equipment);
     }
