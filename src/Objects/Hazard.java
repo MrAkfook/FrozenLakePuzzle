@@ -3,9 +3,30 @@ package Objects;
 import Equipment.HazardEquipment;
 
 public abstract class Hazard {
+
     HazardEquipment overcomeBy;
+    private int id;
+
     public Hazard(){
+        this(-1);
+    }
+
+    public Hazard(int id){
+        this.id = id;
         overcomeBy = null;
+    }
+
+    public Hazard(Hazard other){
+        this.id = other.id;
+        this.overcomeBy = other.overcomeBy;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public HazardEquipment getOvercomeBy() {
@@ -27,7 +48,11 @@ public abstract class Hazard {
             return false;
         }
         else {
-            return true;
+            // Cast the passed object to a Hazard object
+            Hazard otherHazard = (Hazard) other;
+            return otherHazard.getId() == this.id;
         }      
     }
+
+    public abstract String showOnMap();
 }
