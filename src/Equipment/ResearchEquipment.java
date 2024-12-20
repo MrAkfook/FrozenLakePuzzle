@@ -5,12 +5,24 @@ import Interfaces.IMapPlaceable;
 public abstract class ResearchEquipment extends Equipment implements IMapPlaceable {
 
 
-    public ResearchEquipment() {
-        super();
+    public ResearchEquipment(int id) {
+        super(id);
 
     }
 
-    public abstract String showOnMap();
+    public ResearchEquipment(){
+        this(-1);
+    }
+
+    public ResearchEquipment(ResearchEquipment other){
+        super(other);
+    }
+
     public abstract String report();
+
+    @Override
+    public boolean equals(Object other){
+        return super.equals(other);
+    }
 
 }
