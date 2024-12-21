@@ -5,10 +5,14 @@ import Exceptions.*;
 
 public class EquipmentBag<T extends Equipment>{
 
-    Bag<T> bag = new Bag<T>();
+    ArrayBag<T> bag = new ArrayBag<T>();
 
     public EquipmentBag() {
         super();
+    }
+
+    public EquipmentBag(EquipmentBag<T> other){
+
     }
 
     public boolean add(T newEntry) throws IncorrectBagContentsException {
