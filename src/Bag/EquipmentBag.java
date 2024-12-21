@@ -2,8 +2,9 @@ package Bag;
 
 import Equipment.*;
 import Exceptions.*;
+import java.util.Set;
 
-public class EquipmentBag<T extends Equipment>{
+public class EquipmentBag<T extends Equipment> implements Set<T> {
 
     Bag<T> bag = new Bag<T>();
 

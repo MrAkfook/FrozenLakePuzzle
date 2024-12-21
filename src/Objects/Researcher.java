@@ -7,15 +7,15 @@ import Interfaces.IMapPlaceable;
 
 public class Researcher implements IMapPlaceable{
     private EquipmentBag<Equipment> equipmentBag;
-    private String id;
+    private int id;
 
-    public Researcher(String id){
+    public Researcher(int id){
         equipmentBag = new EquipmentBag<Equipment>();
         this.id = id;
     }
 
     public Researcher(){
-        this("");
+        this(-1);
     }
 
     public boolean takeEquipment(Equipment equipment) throws IncorrectBagContentsException {
@@ -26,15 +26,20 @@ public class Researcher implements IMapPlaceable{
         return equipmentBag.remove(equipment);
     }
 
+    public EquipmentBag<Equipment> getEquipmentBag(){
+        return null; //TODO: implement
+    }
+
     public boolean carryingResearchEquipment(){
         return equipmentBag.hasResearchEquipment();
     }
 
-    public String getId(){
+    public int getId(){
         return id;
     }
 
+
     public String showOnMap(){
-        return id;
+        return ("R"+id);
     }
 }
