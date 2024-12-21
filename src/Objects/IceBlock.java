@@ -1,16 +1,16 @@
 package Objects;
 
-public class IceBlocks extends Hazard{
+public class IceBlock extends Hazard{
     
-    public IceBlocks(){
+    public IceBlock(){
         this(-1);
     }
 
-    public IceBlocks(int id){
+    public IceBlock(int id){
         super(id);
     }
 
-    public IceBlocks(IceBlocks other){
+    public IceBlock(IceBlock other){
         super(other);
     }
 

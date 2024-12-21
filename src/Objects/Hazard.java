@@ -1,8 +1,9 @@
 package Objects;
 
 import Equipment.HazardEquipment;
+import Interfaces.IMapPlaceable;
 
-public abstract class Hazard {
+public abstract class Hazard implements IMapPlaceable{
 
     HazardEquipment overcomeBy;
     private int id;
