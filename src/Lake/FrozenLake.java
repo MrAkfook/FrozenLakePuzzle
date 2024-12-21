@@ -62,6 +62,12 @@ public class FrozenLake {
         frozenLake.get(row).get(column).setObject(object);
     }
 
+    public void showLake(){
+        return null;
+        // TODO: Implement this method
+        }
+    }
+
 
 
 

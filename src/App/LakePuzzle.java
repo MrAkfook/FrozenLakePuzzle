@@ -2,12 +2,45 @@ package App;
 
 import Lake.FrozenLake;
 import Objects.*;
+import java.util.Queue;
+import java.util.LinkedList;
+import java.util.Set;
+
+import Equipment.Camera;
+import Equipment.*;
+
+
+import java.util.HashSet;
 
 public class LakePuzzle {
     public static final int ROW_COUNT = 8;
     public static final int COLUMN_COUNT = 11;
     public static void main(String[] args) throws Exception {
-        System.out.println("Hello, World!");
+        FrozenLake lake = new LakePuzzle().initializeFrozenLake();
+        Queue<Researcher> researchers = new LakePuzzle().createResearchersQueue();
+        Set<Experiment> experiments = new LakePuzzle().createExperimentsSet();
+        Set<Equipment> equipmentStorage = new LakePuzzle().createEquipmentSet(2);
+
+        Menu().start();
+
+    }
+
+    private class Menu() {
+        public void start(FrozenLake lake, Queue<Researcher> researchers, Set<Experiment> experiments, Set<Equipment> equipmentStorage) {
+            // Display the menu
+            System.out.println("Welcome to the Frozen Lake Puzzle!");
+            
+            // 1. Display the lake
+            // 2. Display the researchers
+            // 3. Display the experiments
+            // 4. Display the equipment storage
+            // 5. Assign equipment to a researcher
+            // 6. Start an experiment
+            // 7. Exit
+
+        }
+
+
     }
 
     private FrozenLake initializeFrozenLake() {
@@ -124,8 +157,8 @@ public class LakePuzzle {
             int col = (int) (Math.random() * COLUMN_COUNT) + 1; // Random column (1-indexed)
             
             // Avoid placing near entrance or on cliffside
-            if (isValidHazardPlacement(lake, row, col, entranceRow, entranceColumn, cliffSide)) {
-                // lake.addHazard(row, col, new HoleInIce());
+            if (isValidHoleInIcePlacement(lake, row, col, entranceColumn, cliffSide)) {
+                lake.setObject(row, col, new HoleInIce(holeCount));
                 holeCount++;
             }
         }
@@ -133,19 +166,18 @@ public class LakePuzzle {
         // Add 3 IceSpikes next to walls
         int iceSpikeCount = 0;
         while (iceSpikeCount < 3) {
-            int row = (int) (Math.random() * 8);
-            int col = (int) (Math.random() * 11);
+            int row = (int) (Math.random() * ROW_COUNT) + 1; // Random row (1-indexed)
+            int col = (int) (Math.random() * COLUMN_COUNT) + 1; // Random column (1-indexed)
             
             // Check if next to a wall and not near entrance or cliffside
-            if (isValidIceSpikePlacement(lake, row, col, entranceRow, entranceColumn, cliffSide)) {
-                // lake.addHazard(row, col, new IceSpikes());
+            if (isValidIceSpikePlacement(lake, row, col, entranceColumn, cliffSide)) {
+                lake.setObject(row, col, new IceSpikes(iceSpikeCount));
                 iceSpikeCount++;
             }
         }
     }
     
-    private boolean isValidHazardPlacement(FrozenLake lake, int row, int col, 
-                                           int entranceRow, int entranceColumn, int cliffSide) {
+    private boolean isValidHoleInIcePlacement(FrozenLake lake, int row, int col, int entranceColumn, int cliffSide) {
         // Implementation of hazard placement validation
         // Check:
         // 1. Not within 3 squares of entrance
@@ -154,14 +186,69 @@ public class LakePuzzle {
         return true; // Placeholder
     }
     
-    private boolean isValidIceSpikePlacement(FrozenLake lake, int row, int col, 
-                                             int entranceRow, int entranceColumn, int cliffSide) {
+    private boolean isValidIceSpikePlacement(FrozenLake lake, int row, int col, int entranceColumn, int cliffSide) {
         // Implementation of ice spike placement validation
         // Check:
         // 1. Next to a wall
+        if (!((row == 1 || row == ROW_COUNT) && (col == 1 || col == COLUMN_COUNT))) {
+            return false;
+        }
         // 2. Not near entrance
+        if ((row == 1) && (col >= entranceColumn - 2 && col <= entranceColumn + 2)) { // TODO: hocadan dönüş alınacak
+            return false;
+        }
         // 3. Not on cliffside
+        if ((cliffSide == 1 && col == 1) || (cliffSide == 2 && col == COLUMN_COUNT) || (cliffSide == 3 && row == ROW_COUNT)) {
+            return false;
+        }
         // 4. No existing hazards on the square
-        return true; // Placeholder
+        if (lake.getPriorityObject(row, col) instanceof Hazard) {
+            return false;
+        }
+
+        return true;
     }
+
+    private Queue<Researcher> createResearchersQueue() {
+        int researcherCount = (int) (Math.random() * 3) + 2; // Random number between 2 and 4
+
+        // Create a queue of researchers
+        Queue<Researcher> researchers = new LinkedList<Researcher>();
+        for (int i = 0; i < researcherCount; i++) {
+            researchers.add(new Researcher("R" + (i + 1)));
+        }
+    }
+
+    private Set<Experiment> createExperimentsSet() {
+        int experimentCount = (int) (Math.random() * 4) + 1; // Random number between 1 and 4
+        
+        Set<Experiment> experiments = new HashSet<Experiment>();
+        // Create 3 experiments
+        while (experiments.size() < experimentCount) {
+            Experiment experiment = Experiment.values()[(int) (Math.random() * Experiment.values().length)];
+            experiments.add(experiment);
+        }
+
+        return experiments;
+    }
+
+    private Set<Equipment> createEquipmentSet(int equipmentCount) {
+        // equipmentCount is number of each equipment
+        Set<Equipment> equipment = new HashSet<Equipment>();
+
+        for (int i = 0; i < equipmentCount; i++) {
+            equipment.add(new LargeWoodenBoard(i));
+            equipment.add(new ClimbingEquipment(i));
+            equipment.add(new TemperatureDetector(i));
+            equipment.add(new ProtectiveHelmet(i));
+            equipment.add(new TemperatureDetector(i));
+            equipment.add(new Camera(i));
+            equipment.add(new WindSpeedDetector(i));
+        }
+
+        return equipment;
+    }
+
+
+
 }
