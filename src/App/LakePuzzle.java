@@ -9,7 +9,7 @@ import java.util.Set;
 import Interfaces.*;
 
 import Equipment.*;
-import Exceptions.IncorrectBagContentsException;
+import Exceptions.*;
 import Interfaces.IMapPlaceable;
 
 import java.util.HashSet;
@@ -169,15 +169,16 @@ public class LakePuzzle {
                 else{
                     System.out.println("=====> Researcher "+researcher.getId()+" heads out to the lake. Select a direction to slide:");
                 }
-                char direction = getDirection();
+                char direction = getDirection(lake);
                 while (true){
-                    if (direction == 'U'){
-                        System.out.println("*** The input direction is unavailable. Please enter an available direction:");
-                        direction = getDirection();
+                    try {
+                        checkIfDirectionIsAvailable(lake, direction);
+                    } catch (UnavailableDirectionException e) {
+                        System.out.println(e.getMessage());
+                        continue;
                     }
-                    else{
-                        break;
-                    }
+                    break;
+                    
                 }
                 State state = researcher.slide(lake, direction);
                 
@@ -265,8 +266,8 @@ public class LakePuzzle {
                                 Equipment equipment = getEquipment(shortHand);
 
                                 try {
-                                    isValidLocationForExperiment(lake); //####################################### BURDAYIM
-                                } catch {
+                                    isValidLocationForExperiment(lake,equipment); //####################################### BURDAYIM
+                                } catch (IncompatibleResearchEquipmentLocationException e){
                                     System.out.println(e.getMessage());
                                     continue;
                                 }
@@ -344,10 +345,10 @@ public class LakePuzzle {
             return (input.toUpperCase().charAt(0));
         }
 
-        private boolean checkIfDirectionIsAvailable(FrozenLake lake, char direction) {
+        private boolean checkIfDirectionIsAvailable(FrozenLake lake, char direction) throws UnavailableDirectionException {
             int row = getResearcherRow();
             int col = getResearcherColumn();
-            boolean isValid;
+            boolean isValid = false;
 
             switch (direction) {
                 case 'U':
@@ -366,7 +367,7 @@ public class LakePuzzle {
             }
 
             if (!isValid) {
-                throw new UnavailableDirectionException("Invalid direction. Please enter a valid direction:");
+                throw new UnavailableDirectionException("*** The input direction is unavailable. Please enter an available direction:");
             }
 
             return isValid;
@@ -406,7 +407,7 @@ public class LakePuzzle {
             return equipment;
         }
 
-        private boolean isValidLocationForExperiment(FrozenLake lake, Equipment equipment) {
+        private boolean isValidLocationForExperiment(FrozenLake lake, Equipment equipment) throws IncompatibleResearchEquipmentLocationException{
             int row = getResearcherRow();
             int col = getResearcherColumn();
             
@@ -422,7 +423,6 @@ public class LakePuzzle {
                 (lake.getPriorityObject(row, col - 1) instanceof Wall) ||
                 (lake.getPriorityObject(row, col + 1) instanceof Wall)){
                     throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
-                    return false;
                 }
                     
             } else if (researchEquipment instanceof WindSpeedDetector) {
@@ -431,7 +431,6 @@ public class LakePuzzle {
                 (lake.getPriorityObject(row, col - 1) instanceof IDangerousHazard) || 
                 (lake.getPriorityObject(row, col + 1) instanceof IDangerousHazard)){
                     throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
-                    return false;
                 }
             } else if (researchEquipment instanceof Camera) {
                 int i = 1;
@@ -444,7 +443,6 @@ public class LakePuzzle {
 
                             if(lake.getPriorityObject(row, col - i) instanceof Hazard){
                                 throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
-                                return false;
                             }
                             i++;
                             break;
@@ -455,7 +453,6 @@ public class LakePuzzle {
 
                             if(lake.getPriorityObject(row, col + i) instanceof Hazard){
                                 throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
-                                return false;
                             }
                             i++;
                             break;
@@ -466,7 +463,6 @@ public class LakePuzzle {
 
                             if(lake.getPriorityObject(row + i, col) instanceof Hazard){
                                 throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
-                                return false;
                             }
                             i++;
                             break;
@@ -484,9 +480,9 @@ public class LakePuzzle {
                     return true;
                 } else {
                     throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
-                    return false;
                 }
             } 
+            return false;
         }
 
     }
