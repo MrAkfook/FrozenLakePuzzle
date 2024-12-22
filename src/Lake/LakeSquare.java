@@ -57,4 +57,8 @@ public class LakeSquare {
         return this.researcher.equals(otherSquare.researcher) && this.MapItem.equals(otherSquare.MapItem);
     }
 
+    public String toString(){
+        return ((researcher == null) ? ""    :   "R"+researcher.getId()  ) + ((MapItem == null) ? ""    :   MapItem.toString() );
+    }
+
 }
