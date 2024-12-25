@@ -1,8 +1,6 @@
 package Equipment;
 
-import Interfaces.IMapPlaceable;
-
-public abstract class ResearchEquipment extends Equipment implements IMapPlaceable {
+public abstract class ResearchEquipment extends Equipment{
 
 
     public ResearchEquipment(int id) {

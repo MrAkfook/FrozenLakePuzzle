@@ -7,7 +7,6 @@ import java.util.Scanner;
 import java.util.LinkedList;
 import java.util.Set;
 
-import Bag.EquipmentBag;
 import Interfaces.*;
 
 import Equipment.*;
@@ -220,6 +219,7 @@ public class LakePuzzle {
                                         + researcher.getId() + " is carrying a Climbing Equipment. Researcher "
                                         + researcher.getId()
                                         + " sets the Climbing Equipment and manages to climb back up the cliff.");
+                                lake.setObject(researcherRow, researcherColumn, researcher.useEquipment(new ClimbingEquipment()));
                             }
                             break;
                         case HOLE_IN_ICE:
@@ -231,6 +231,7 @@ public class LakePuzzle {
                                         + " comes across a hole in ice. However, Researcher " + researcher.getId()
                                         + " is carrying a Large Wooden Board. Researcher " + researcher.getId()
                                         + " covers the ice with the board and starts standing on it. ");
+                                lake.setObject(researcherRow, researcherColumn, researcher.useEquipment(new LargeWoodenBoard()));
                             }
                             break;
                         case ICE_SPIKES:
@@ -242,6 +243,7 @@ public class LakePuzzle {
                                         + " comes across ice spikes. However, Researcher " + researcher.getId()
                                         + " is carrying a Protective Helmet. Researcher " + researcher.getId()
                                         + " wears the helmet and manages to survive the ice spikes falling.");
+                                researcher.useEquipment(new ProtectiveHelmet());
                             }
                             break;
                         case IMAP_PLACEABLE:
@@ -291,7 +293,7 @@ public class LakePuzzle {
 
                                 Equipment equipment = getEquipment(shortHand);
 
-                                for (Equipment e : researcher.getEquipmentBag()) {// TODO ADD EQUIPMENT BAG
+                                for (Equipment e : researcher.getEquipmentBagArray()) {// TODO ADD EQUIPMENT BAG
                                     if (e.getClass().equals(equipment.getClass())) {
                                         equipment = e;
                                         break;
@@ -311,7 +313,7 @@ public class LakePuzzle {
                                     continue;
                                 }
 
-                                researcher.useEquipment(equipment);
+                                lake.setObject(researcherRow, researcherColumn, researcher.useEquipment(equipment));
                                 System.out.println(
                                         "--- The selected research equipment has been placed in the current location.");
                                 break;
@@ -425,7 +427,6 @@ public class LakePuzzle {
 
         private boolean determineInjury(State state, Researcher researcher) {
             boolean isInjured = false;
-            EquipmentBag<Equipment> equipmentBag = researcher.getEquipmentBag();
             Equipment neededEquipment = null;
             switch (state) {
                 case CLIFF_EDGE:
@@ -440,7 +441,7 @@ public class LakePuzzle {
                 default:
                     break;
             }
-            for (Equipment e : equipmentBag) {
+            for (Equipment e : researcher.getEquipmentBagArray()) {
                 if (e.getClass().equals(neededEquipment.getClass())) {
                     isInjured = false;
                     break;
@@ -448,7 +449,12 @@ public class LakePuzzle {
                     isInjured = true;
                 }
             }
-            researcher.useEquipment(neededEquipment);
+            if (state==State.ICE_SPIKES) {
+                researcher.useEquipment(neededEquipment);
+            } else{
+                lake.setObject(researcherRow, researcherColumn, researcher.useEquipment(neededEquipment));
+            }
+            
             return isInjured;
         }
 

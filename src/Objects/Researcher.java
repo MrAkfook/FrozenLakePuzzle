@@ -7,11 +7,11 @@ import Exceptions.UnavailableEquipmentException;
 import Interfaces.IMapPlaceable;
 
 public class Researcher implements IMapPlaceable{
-    private EquipmentBag<Equipment> equipmentBag;
+    private EquipmentBag equipmentBag;
     private int id;
 
     public Researcher(int id){
-        equipmentBag = new EquipmentBag<Equipment>();
+        equipmentBag = new EquipmentBag();
         this.id = id;
     }
 
@@ -19,16 +19,25 @@ public class Researcher implements IMapPlaceable{
         this(-1);
     }
 
+    public Researcher(Researcher other){
+        this.equipmentBag = new EquipmentBag(other.equipmentBag);
+        this.id = other.id;
+    }
+
     public boolean takeEquipment(Equipment equipment) throws IncorrectBagContentsException {
         return equipmentBag.add(equipment);
     }
 
-    public boolean useEquipment(Equipment equipment){
-        return equipmentBag.remove(equipment);
+    public Equipment useEquipment(Equipment equipment){
+        for(Equipment e :equipmentBag.toArray()){
+            if (e.getClass().equals(equipment.getClass()))
+                return e;
+        }
+        return null;
     }
 
-    public EquipmentBag<Equipment> getEquipmentBag(){
-        return null; //TODO: implement
+    public Equipment[] getEquipmentBagArray(){
+        return equipmentBag.toArray();
     }
 
     public boolean carryingResearchEquipment() throws UnavailableEquipmentException {
