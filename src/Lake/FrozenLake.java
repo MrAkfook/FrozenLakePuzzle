@@ -100,7 +100,7 @@ public class FrozenLake {
                 if (lakeSquare.getPriorityObject().getClass() == new Wall().getClass()) {
                     System.out.print("      ");
                 } else if (lakeSquare.getPriorityObject().getClass() == new CliffEdge().getClass()) {
-                    System.out.print("  CE  ");
+                    System.out.print("  "+lakeSquare.toString()+"  ");
                 } else {
                     if (lakeSquare.toString().length() == 2) {
                         System.out.print("| " + lakeSquare.toString() + "  ");

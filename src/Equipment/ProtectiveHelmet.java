@@ -1,7 +1,5 @@
 package Equipment;
 
-import java.net.ProtocolException;
-
 public class ProtectiveHelmet extends HazardEquipment{
 
     public ProtectiveHelmet() {

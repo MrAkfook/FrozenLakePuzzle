@@ -12,4 +12,8 @@ public class CliffEdge extends Hazard implements IDangerousHazard{
     public boolean equals(Object other){
         return super.equals(other);
     }
+    @Override
+    public String showOnMap() {
+        return "CE";
+    }
 }

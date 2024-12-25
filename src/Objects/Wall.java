@@ -1,6 +1,5 @@
 package Objects;
 
-import Equipment.HazardEquipment;
 import Interfaces.IMapPlaceable;
 
 public class Wall implements IMapPlaceable{
