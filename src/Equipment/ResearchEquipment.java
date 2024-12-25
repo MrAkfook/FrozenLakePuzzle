@@ -1,5 +1,7 @@
 package Equipment;
 
+import Objects.Experiment;
+
 public abstract class ResearchEquipment extends Equipment{
 
 
@@ -22,5 +24,7 @@ public abstract class ResearchEquipment extends Equipment{
     public boolean equals(Object other){
         return super.equals(other);
     }
+
+    public abstract Experiment getExperiment();
 
 }

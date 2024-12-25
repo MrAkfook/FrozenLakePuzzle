@@ -1,5 +1,7 @@
 package Equipment;
 
+import Objects.Experiment;
+
 public class Camera extends ResearchEquipment{
 
     private boolean isWorking;
@@ -39,6 +41,9 @@ public class Camera extends ResearchEquipment{
         else{return false;}
     } 
 
-    
+    @Override
+    public Experiment getExperiment() {
+        return Experiment.CAMERA_PLACEMENT;
+    }
     
 }

@@ -29,6 +29,10 @@ public class LakeSquare {
         return new Researcher(researcher);
     }
 
+    public void removeResearcher() {
+        this.researcher = null;
+    }
+
     public IMapPlaceable getPriorityObject() {
         return (researcher == null) ? MapItem : researcher;
     }
@@ -56,9 +60,9 @@ public class LakeSquare {
         LakeSquare otherSquare = (LakeSquare) other;
         return this.researcher.equals(otherSquare.researcher) && this.MapItem.equals(otherSquare.MapItem);
     }
-
+    @Override
     public String toString(){
-        return ((researcher == null) ? ""    :   "R"+researcher.getId()  ) + ((MapItem == null) ? ""    :   MapItem.toString() );
+        return ((researcher == null) ? ""    :   "R"+researcher.getId()  ) +(((researcher != null)&&(MapItem != null))? "-":"")+ ((MapItem == null) ? ""    :   MapItem.showOnMap() );
     }
 
 }

@@ -1,5 +1,7 @@
 package Equipment;
 
+import Objects.Experiment;
+
 public class TemperatureDetector extends ResearchEquipment{
 
     private int temperature; // temperature in degrees Celsius -30 to 0
@@ -43,4 +45,8 @@ public class TemperatureDetector extends ResearchEquipment{
         }
     }
 
+    @Override
+    public Experiment getExperiment() {
+        return Experiment.TEMPERATURE_MEASUREMENT;
+    }
 }

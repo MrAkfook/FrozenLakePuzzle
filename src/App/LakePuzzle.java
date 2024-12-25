@@ -55,9 +55,11 @@ public class LakePuzzle {
         private boolean isInjured;
         private int researcherRow;
         private int researcherColumn;
+        Set<ResearchEquipment> placedEquipments;
 
         public Menu() {
             scanner = new Scanner(System.in);
+            placedEquipments = new HashSet<ResearchEquipment>();
         }
 
         // gettters and setters
@@ -97,6 +99,7 @@ public class LakePuzzle {
                 System.out.println("- " + experiment.toString());
             }
             System.out.println("The initial map of the frozen lake: ");
+            lake.setObject(1, (COLUMN_COUNT + 1) / 2, researchers.peek());
             lake.showLake();
 
             for (Researcher researcher : researchers) {
@@ -105,6 +108,7 @@ public class LakePuzzle {
 
                 researcherRow = 1;
                 researcherColumn = (COLUMN_COUNT + 1) / 2;
+                lake.setObject(researcherRow, researcherColumn, researcher);
 
                 if (researcher.getId() == 1) {
                     System.out.println(
@@ -130,11 +134,11 @@ public class LakePuzzle {
                 // 5. Assign equipment to a researcher
                 for (int i = 0; i < 3; i++) {
                     Equipment equipment = null;
+                    ShortHand shortHand;
                     while (true) {
                         System.out.println("Enter the short name of an equipment:");
-                        ShortHand shortHand;
                         try {
-                            shortHand = ShortHand.valueOf(getShorthand());
+                            shortHand = ShortHand.valueOf(getShorthand().toUpperCase());
                         } catch (IllegalArgumentException e) {
                             System.out.println("Invalid input. Please enter a valid equipment short name:");
                             continue;
@@ -172,10 +176,25 @@ public class LakePuzzle {
                             continue;
                         }
                         equipmentStorage.remove(equipment);
+                        if (researcher.getId() == 1) {
+                            System.out.print("- Contents of the bag of Researcher " + researcher.getId() + ": ");
+                            for (Equipment e : researcher.getEquipmentBagArray()) {
+                                System.out.print(e.showOnMap().toLowerCase() + ", ");
+                            }
+                            System.out.println();
+                        }
                         break;
                     }
-
+                    if (shortHand == ShortHand.NO) {
+                        break;
+                    }
                 }
+
+                System.out.print("- The final contents of the bag of Researcher " + researcher.getId() + ":");
+                for (Equipment e : researcher.getEquipmentBagArray()) {
+                    System.out.print(e.showOnMap().toLowerCase() + ", ");
+                }
+                System.out.println();
 
                 if (researcher.getId() == 1) {
                     System.out.println("=====> Researcher " + researcher.getId()
@@ -184,28 +203,34 @@ public class LakePuzzle {
                     System.out.println("=====> Researcher " + researcher.getId()
                             + " heads out to the lake. Select a direction to slide:");
                 }
-                char direction = getDirection(lake);
+                char direction;
                 while (true) {
                     try {
-                        checkIfDirectionIsAvailable(lake, direction);
+                        direction = getDirection(lake);
+                        if (direction == 'U') {
+                            throw new UnavailableDirectionException(
+                                    "*** The input direction is unavailable. Please enter an available direction:");
+                        }
                     } catch (UnavailableDirectionException e) {
                         System.out.println(e.getMessage());
                         continue;
                     }
                     break;
-
                 }
-                State state = slide(lake, researcherRow, researcherColumn, direction);
+
+                State state = slide(lake, researcher, researcherRow, researcherColumn, direction);
 
                 setIsInjured(determineInjury(state, researcher));
 
                 while (true) {
                     switch (state) {
                         case LARGE_WOODEN_BOARD:
+                            lake.showLake();
                             System.out.println("=====> Researcher " + researcher.getId()
                                     + " manages to stop safely on a Wooden Board.");
                             break;
                         case CLIMBING_EQUIPMENT:
+                            lake.showLake();
                             System.out.println("=====> Researcher " + researcher.getId()
                                     + " manages to climb back up the cliff using the Climbing Equipment.");
                             break;
@@ -214,12 +239,14 @@ public class LakePuzzle {
                                 System.out.println("=====> Researcher " + researcher.getId()
                                         + " falls off the cliff and gets injured.");
                             } else {
+                                lake.setObject(researcherRow, researcherColumn,
+                                        researcher.useEquipment(new ClimbingEquipment()));
+                                lake.showLake();
                                 System.out.println("!!! Researcher " + researcher.getId()
                                         + " is sliding towards the cliff edge and starts falling. However, Researcher "
                                         + researcher.getId() + " is carrying a Climbing Equipment. Researcher "
                                         + researcher.getId()
                                         + " sets the Climbing Equipment and manages to climb back up the cliff.");
-                                lake.setObject(researcherRow, researcherColumn, researcher.useEquipment(new ClimbingEquipment()));
                             }
                             break;
                         case HOLE_IN_ICE:
@@ -227,11 +254,13 @@ public class LakePuzzle {
                                 System.out.println("=====> Researcher " + researcher.getId()
                                         + " falls into a hole in the ice and gets injured.");
                             } else {
+                                lake.setObject(researcherRow, researcherColumn,
+                                        researcher.useEquipment(new LargeWoodenBoard()));
+                                lake.showLake();
                                 System.out.println("!!! Researcher " + researcher.getId()
                                         + " comes across a hole in ice. However, Researcher " + researcher.getId()
                                         + " is carrying a Large Wooden Board. Researcher " + researcher.getId()
                                         + " covers the ice with the board and starts standing on it. ");
-                                lake.setObject(researcherRow, researcherColumn, researcher.useEquipment(new LargeWoodenBoard()));
                             }
                             break;
                         case ICE_SPIKES:
@@ -239,19 +268,31 @@ public class LakePuzzle {
                                 System.out.println("=====> The ice spikes falls on Researcher " + researcher.getId()
                                         + "'s head and injures the Researcher.");
                             } else {
+                                lake.setObject(researcherRow, researcherColumn, null);
+                                researcher.useEquipment(new ProtectiveHelmet());
+                                lake.showLake();
                                 System.out.println("!!! Researcher " + researcher.getId()
                                         + " comes across ice spikes. However, Researcher " + researcher.getId()
                                         + " is carrying a Protective Helmet. Researcher " + researcher.getId()
                                         + " wears the helmet and manages to survive the ice spikes falling.");
-                                researcher.useEquipment(new ProtectiveHelmet());
+
                             }
                             break;
                         case IMAP_PLACEABLE:
+                            lake.showLake();
                             System.out.println("=====> Researcher " + researcher.getId() + " manages to stop safely.");
+                            break;
+                        case ENTERANCE:
+                            lake.showLake();
+                            System.out.println("=====> Researcher " + researcher.getId()
+                                    + " has reached the entrance. The researcher empties their bag into the equipment storage.");
+                            for (Equipment e : researcher.getEquipmentBagArray()) {
+                                equipmentStorage.add(e);
+                            }
                             break;
 
                     }
-                    if (getIsInjured()) {
+                    if (getIsInjured() || state == State.ENTERANCE) {
                         break;
                     }
                     System.out.println("[1] Continue moving on the ice. \r\n" + //
@@ -265,7 +306,7 @@ public class LakePuzzle {
                             case 1:
                                 System.out.println("Select a direction to slide:");
                                 direction = getDirection(lake);
-                                state = slide(lake,researcherRow,researcherColumn, direction);
+                                state = slide(lake, researcher, researcherRow, researcherColumn, direction);
                                 setIsInjured(determineInjury(state, researcher));
                                 break;
                             case 2:
@@ -283,7 +324,7 @@ public class LakePuzzle {
                                     System.out.println("=====> Enter the name of the research equipment:");
 
                                     try {
-                                        shortHand = ShortHand.valueOf(getShorthand());
+                                        shortHand = ShortHand.valueOf(getShorthand().toUpperCase());
                                     } catch (IllegalArgumentException e) {
                                         System.out.println("Invalid input. Please enter a valid equipment short name:");
                                         continue;
@@ -316,6 +357,7 @@ public class LakePuzzle {
                                 lake.setObject(researcherRow, researcherColumn, researcher.useEquipment(equipment));
                                 System.out.println(
                                         "--- The selected research equipment has been placed in the current location.");
+                                placedEquipments = checkSuccess(equipment, experiments, placedEquipments);
                                 break;
                             case 3:
                                 break;
@@ -370,9 +412,7 @@ public class LakePuzzle {
             String input;
             while (true) {
                 input = scanner.nextLine().trim();
-                if (input.matches("[RLUDrlud]")) {
-                    break;
-                } else {
+                if (!(input.matches("[RLUDrlud]"))) {
                     System.out.println("*** Invalid input. Please reenter your input:");
                 }
 
@@ -382,6 +422,7 @@ public class LakePuzzle {
                     System.out.println(e.getMessage());
                     continue;
                 }
+                break;
             }
 
             return (input.toUpperCase().charAt(0));
@@ -396,19 +437,23 @@ public class LakePuzzle {
             switch (direction) {
                 case 'U':
                     isValid = !(lake.getPriorityObject(row - 1, col) instanceof IMapPlaceable)
-                            || (lake.getPriorityObject(row - 1, col) instanceof LargeWoodenBoard);
+                            || (lake.getPriorityObject(row - 1, col) instanceof LargeWoodenBoard)
+                            || (lake.getPriorityObject(row - 1, col) instanceof IDangerousHazard);
                     break;
                 case 'D':
                     isValid = !(lake.getPriorityObject(row + 1, col) instanceof IMapPlaceable)
-                            || (lake.getPriorityObject(row + 1, col) instanceof LargeWoodenBoard);
+                            || (lake.getPriorityObject(row + 1, col) instanceof LargeWoodenBoard)
+                            || (lake.getPriorityObject(row + 1, col) instanceof IDangerousHazard);
                     break;
                 case 'L':
                     isValid = !(lake.getPriorityObject(row, col - 1) instanceof IMapPlaceable)
-                            || (lake.getPriorityObject(row, col - 1) instanceof LargeWoodenBoard);
+                            || (lake.getPriorityObject(row, col - 1) instanceof LargeWoodenBoard)
+                            || (lake.getPriorityObject(row, col - 1) instanceof IDangerousHazard);
                     break;
                 case 'R':
                     isValid = !(lake.getPriorityObject(row, col + 1) instanceof IMapPlaceable)
-                            || (lake.getPriorityObject(row, col + 1) instanceof LargeWoodenBoard);
+                            || (lake.getPriorityObject(row, col + 1) instanceof LargeWoodenBoard)
+                            || (lake.getPriorityObject(row, col + 1) instanceof IDangerousHazard);
                     break;
                 default:
             }
@@ -422,11 +467,11 @@ public class LakePuzzle {
         }
 
         enum State {
-            LARGE_WOODEN_BOARD, CLIMBING_EQUIPMENT, CLIFF_EDGE, HOLE_IN_ICE, ICE_SPIKES, IMAP_PLACEABLE;
+            LARGE_WOODEN_BOARD, CLIMBING_EQUIPMENT, CLIFF_EDGE, HOLE_IN_ICE, ICE_SPIKES, IMAP_PLACEABLE, ENTERANCE;
         }
 
         private boolean determineInjury(State state, Researcher researcher) {
-            boolean isInjured = false;
+            boolean isInjured = true;
             Equipment neededEquipment = null;
             switch (state) {
                 case CLIFF_EDGE:
@@ -439,22 +484,15 @@ public class LakePuzzle {
                     neededEquipment = new IceSpikes().getOvercomeBy();
                     break;
                 default:
-                    break;
+                    return false;
             }
             for (Equipment e : researcher.getEquipmentBagArray()) {
                 if (e.getClass().equals(neededEquipment.getClass())) {
                     isInjured = false;
                     break;
-                } else {
-                    isInjured = true;
                 }
             }
-            if (state==State.ICE_SPIKES) {
-                researcher.useEquipment(neededEquipment);
-            } else{
-                lake.setObject(researcherRow, researcherColumn, researcher.useEquipment(neededEquipment));
-            }
-            
+
             return isInjured;
         }
 
@@ -573,18 +611,44 @@ public class LakePuzzle {
             return false;
         }
 
+        private Set<ResearchEquipment> checkSuccess(Equipment equipment, Set<Experiment> experiments,Set<ResearchEquipment> placedEquipments) {
+            ResearchEquipment researchEquipment = (ResearchEquipment) equipment;
+            placedEquipments.add(researchEquipment);
+            Set<ResearchEquipment> goalEquipments = new HashSet<ResearchEquipment>();
+            Set<Experiment> completedExperiments = new HashSet<Experiment>();
+            for (ResearchEquipment e : placedEquipments) {
+                if (experiments.contains(e.getExperiment())) {
+                    completedExperiments.add(e.getExperiment());
+                    goalEquipments.add(e);
+                }
+            }
+            if (completedExperiments.size() == experiments.size()) {
+                System.out.println("-----------> Research goal(s) have been accomplished. Here are their results:\n");
+                for (ResearchEquipment e : goalEquipments) {
+                    System.out.println("--" + e.report());
+                }
+                System.out.println("-----------> SUCCESSFUL ");
+                System.exit(0);
+            }
+            return placedEquipments;
+        }
     }
 
-    public Menu.State slide(FrozenLake lake, int researcherRow, int researcherColumn, char direction) {
+    public Menu.State slide(FrozenLake lake, Researcher researcher, int researcherRow, int researcherColumn,
+            char direction) {
         int row = researcherRow;
         int col = researcherColumn;
         Menu.State state = null;
         int i = 1;
+
+        lake.removeResearcher(row, col);
+
         while (true) {
             switch (direction) {
                 case 'U':
                     if (lake.getPriorityObject(row - i, col) instanceof LargeWoodenBoard) {
                         this.menu.setResearcherRow(row - i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.LARGE_WOODEN_BOARD;
                         return state;
                     } else if (lake.getPriorityObject(row - i, col) instanceof ClimbingEquipment) { // This is
@@ -593,51 +657,66 @@ public class LakePuzzle {
                                                                                                     // current set of
                                                                                                     // rules
                         this.menu.setResearcherRow(row - i + 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.CLIMBING_EQUIPMENT;
                         return state;
                     } else if (lake.getPriorityObject(row - i, col) instanceof CliffEdge) { // This is impossible to
                                                                                             // encounter in the current
                                                                                             // set of rules
                         this.menu.setResearcherRow(row - i + 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.CLIFF_EDGE;
                         return state;
                     } else if (lake.getPriorityObject(row - i, col) instanceof HoleInIce) {
                         this.menu.setResearcherRow(row - i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.HOLE_IN_ICE;
                         return state;
                     } else if (lake.getPriorityObject(row - i, col) instanceof IceSpikes) {
                         this.menu.setResearcherRow(row - i);
-                        state = Menu.State.LARGE_WOODEN_BOARD;
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
+                        state = Menu.State.ICE_SPIKES;
                         return state;
                     } else if (lake.getPriorityObject(row - i, col) instanceof IMapPlaceable) {
                         this.menu.setResearcherRow(row - i + 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.IMAP_PLACEABLE;
+                        return state;
+                    } else if ((row - i == 1) && (col == (COLUMN_COUNT + 1) / 2)) { // This state can only be reached
+                                                                                    // while going up to the entrance
+                        state = Menu.State.ENTERANCE;
                         return state;
                     }
                     break;
                 case 'D':
                     if (lake.getPriorityObject(row + i, col) instanceof LargeWoodenBoard) {
                         this.menu.setResearcherRow(row + i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.LARGE_WOODEN_BOARD;
                         return state;
                     } else if (lake.getPriorityObject(row + i, col) instanceof ClimbingEquipment) {
                         this.menu.setResearcherRow(row + i - 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.CLIMBING_EQUIPMENT;
                         return state;
                     } else if (lake.getPriorityObject(row + i, col) instanceof CliffEdge) {
                         this.menu.setResearcherRow(row + i - 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.CLIFF_EDGE;
                         return state;
                     } else if (lake.getPriorityObject(row + i, col) instanceof HoleInIce) {
                         this.menu.setResearcherRow(row + i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.HOLE_IN_ICE;
                         return state;
                     } else if (lake.getPriorityObject(row + i, col) instanceof IceSpikes) {
                         this.menu.setResearcherRow(row + i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.ICE_SPIKES;
                         return state;
-                    } else if (lake.getPriorityObject(row + 1, col) instanceof IMapPlaceable) {
+                    } else if (lake.getPriorityObject(row + i, col) instanceof IMapPlaceable) {
                         this.menu.setResearcherRow(row + i - 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.IMAP_PLACEABLE;
                         return state;
                     }
@@ -645,26 +724,32 @@ public class LakePuzzle {
                 case 'L':
                     if (lake.getPriorityObject(row, col - i) instanceof LargeWoodenBoard) {
                         this.menu.setResearcherColumn(col - i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.LARGE_WOODEN_BOARD;
                         return state;
                     } else if (lake.getPriorityObject(row, col - i) instanceof ClimbingEquipment) {
                         this.menu.setResearcherColumn(col - i + 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.CLIMBING_EQUIPMENT;
                         return state;
                     } else if (lake.getPriorityObject(row, col - i) instanceof CliffEdge) {
                         this.menu.setResearcherColumn(col - i + 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.CLIFF_EDGE;
                         return state;
                     } else if (lake.getPriorityObject(row, col - i) instanceof HoleInIce) {
                         this.menu.setResearcherColumn(col - i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.HOLE_IN_ICE;
                         return state;
                     } else if (lake.getPriorityObject(row, col - i) instanceof IceSpikes) {
                         this.menu.setResearcherColumn(col - i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.ICE_SPIKES;
                         return state;
-                    } else if (lake.getPriorityObject(row, col - 1) instanceof IMapPlaceable) {
+                    } else if (lake.getPriorityObject(row, col - i) instanceof IMapPlaceable) {
                         this.menu.setResearcherColumn(col - i + 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.IMAP_PLACEABLE;
                         return state;
                     }
@@ -672,26 +757,32 @@ public class LakePuzzle {
                 case 'R':
                     if (lake.getPriorityObject(row, col + i) instanceof LargeWoodenBoard) {
                         this.menu.setResearcherColumn(col + i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.LARGE_WOODEN_BOARD;
                         return state;
                     } else if (lake.getPriorityObject(row, col + i) instanceof ClimbingEquipment) {
                         this.menu.setResearcherColumn(col + i - 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.CLIMBING_EQUIPMENT;
                         return state;
                     } else if (lake.getPriorityObject(row, col + i) instanceof CliffEdge) {
                         this.menu.setResearcherColumn(col + i - 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.CLIFF_EDGE;
                         return state;
                     } else if (lake.getPriorityObject(row, col + i) instanceof HoleInIce) {
                         this.menu.setResearcherColumn(col + i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.HOLE_IN_ICE;
                         return state;
                     } else if (lake.getPriorityObject(row, col + i) instanceof IceSpikes) {
                         this.menu.setResearcherColumn(col + i);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.ICE_SPIKES;
                         return state;
-                    } else if (lake.getPriorityObject(row, col + 1) instanceof IMapPlaceable) {
+                    } else if (lake.getPriorityObject(row, col + i) instanceof IMapPlaceable) {
                         this.menu.setResearcherColumn(col + i - 1);
+                        lake.setObject(this.menu.getResearcherRow(), this.menu.getResearcherColumn(), researcher);
                         state = Menu.State.IMAP_PLACEABLE;
                         return state;
                     }
@@ -701,6 +792,7 @@ public class LakePuzzle {
             }
             i++; // Increment i to check the next cell
         }
+
     }
 
     private Queue<Researcher> createResearchersQueue() {

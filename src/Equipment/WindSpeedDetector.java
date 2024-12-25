@@ -1,5 +1,7 @@
 package Equipment;
 
+import Objects.Experiment;
+
 public class WindSpeedDetector extends ResearchEquipment {
 
     private int windSpeed;
@@ -43,4 +45,8 @@ public class WindSpeedDetector extends ResearchEquipment {
         }
     }
 
+    @Override
+    public Experiment getExperiment() {
+        return Experiment.WIND_SPEED_MEASUREMENT;
+    }
 }

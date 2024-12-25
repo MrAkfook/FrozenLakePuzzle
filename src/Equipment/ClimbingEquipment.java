@@ -20,7 +20,7 @@ public class ClimbingEquipment extends HazardEquipment{
 
     @Override
     public String showOnMap() {
-        return "CE";
+        return "CL";
     }
 
 }

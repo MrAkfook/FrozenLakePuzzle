@@ -1,5 +1,7 @@
 package Equipment;
 
+import Objects.Experiment;
+
 public class ChiselingEquipment extends ResearchEquipment{
 
     private double iceBlockWeight;
@@ -42,5 +44,8 @@ public class ChiselingEquipment extends ResearchEquipment{
         }
     }
 
-    
+    @Override
+    public Experiment getExperiment() {
+        return Experiment.GLACIAL_SAMPLING;
+    }
 }

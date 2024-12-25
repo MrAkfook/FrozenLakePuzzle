@@ -48,25 +48,23 @@ public class FrozenLake {
     }
 
     public FrozenLake initializeFrozenLake(int cliffSide) {
-        // Create the FrozenLake with 8x11 dimensions
-        FrozenLake lake = new FrozenLake(rowCount, columnCount);
 
         // Set the entrance at the upper middle square
         int entranceColumn = (columnCount + 1) / 2; // Middle column (0-indexed)
 
         // Add walls to the all edges, except the entrance
-        addWalls(lake, entranceColumn);
+        addWalls(this, entranceColumn);
 
         // Add CliffEdge based on the randomly chosen side
-        addCliffEdge(lake, cliffSide);
+        addCliffEdge(this, cliffSide);
 
         // Add IceBlocks
-        addIceBlocks(lake, entranceColumn, cliffSide);
+        addIceBlocks(this, entranceColumn, cliffSide);
 
         // Add Hazards
-        addHazards(lake, entranceColumn, cliffSide);
+        addHazards(this, entranceColumn, cliffSide);
 
-        return lake;
+        return this;
     }
 
     // getters and setters
@@ -90,17 +88,24 @@ public class FrozenLake {
         frozenLake.get(row).get(column).setObject(object);
     }
 
+    public void removeResearcher(int row, int column) {
+        frozenLake.get(row).get(column).removeResearcher();
+    }
+
     public void showLake() {
         System.out.println("\n");
-        System.out.println("      "+"-"+"------".repeat((int)(columnCount/2)) + "   " + "--" + "------".repeat((int)(columnCount/2)) );
+        System.out.println("      " + "-" + "------".repeat((int) (columnCount / 2)) + "-   -"
+                + "------".repeat((int) (columnCount / 2)));
         for (int i = 1; i < rowCount + 2; i++) {
             ArrayList<LakeSquare> currentRow = frozenLake.get(i);
-            for (int j = 1; j < columnCount + 2; j++) {
+            for (int j = 0; j < columnCount + 2; j++) {
                 LakeSquare lakeSquare = currentRow.get(j);
-                if (lakeSquare.getPriorityObject().getClass() == new Wall().getClass()) {
+                if (lakeSquare.getPriorityObject() == null) {
+                    System.out.print("|     ");
+                } else if (lakeSquare.getPriorityObject().getClass() == new Wall().getClass()) {
                     System.out.print("      ");
                 } else if (lakeSquare.getPriorityObject().getClass() == new CliffEdge().getClass()) {
-                    System.out.print("  "+lakeSquare.toString()+"  ");
+                    System.out.print("  " + lakeSquare.toString() + "  ");
                 } else {
                     if (lakeSquare.toString().length() == 2) {
                         System.out.print("| " + lakeSquare.toString() + "  ");
@@ -109,16 +114,19 @@ public class FrozenLake {
                     }
 
                 }
-                if (i == columnCount) {
-                    System.out.println("|");
+                if ((j == columnCount) && (i != rowCount + 1)) {
+                    System.out.print("|");
                 }
             }
-            System.out.println("      "+"-"+"------".repeat(columnCount));
+            System.out.println();
+            if (i != rowCount + 1) {
+                System.out.println("      " + "-" + "------".repeat(columnCount));
+            }
         }
     }
 
     // Helper methods
-        private void addWalls(FrozenLake lake, int entranceColumn) {
+    private void addWalls(FrozenLake lake, int entranceColumn) {
         // Add walls to upper edge except the entrance
         for (int col = 0; col < columnCount + 2; col++) {
             if (col != entranceColumn) {
@@ -167,10 +175,42 @@ public class FrozenLake {
         int iceBlocksPlaced = 0;
 
         // Place IceBlock to the column below the entrance
-        int randomRow = (int) (Math.random() * rowCount) + 1; // Random row (1-indexed)
+        int randomRow = (int) (Math.random() * (rowCount-1)) + 2; // Random row (2-8)
         lake.setObject(randomRow, entranceColumn, new IceBlock(iceBlocksPlaced));
         rowUsed[randomRow] = true;
         iceBlocksPlaced++;
+
+
+        // adding 2 ice blocks near the cliff edge
+        if (cliffSide == 1 || cliffSide == 2) {
+            for (int i = 0; i < 2; i++) {
+                while (true) {
+                    int row = (int) (Math.random() * rowCount) + 1; // Random row (1-indexed)
+                    if (rowUsed[row])
+                        continue;
+                    int col = (cliffSide == 1) ? 1 : columnCount;
+                    lake.setObject(row, col, new IceBlock(iceBlocksPlaced));
+                    rowUsed[row] = true;
+                    iceBlocksPlaced++;
+                    break;
+                }
+            }
+        } else if (cliffSide == 3) {
+            int limit = ((rowUsed[rowCount]) ? 1: 2);
+            for (int i = 0; i < limit; i++) { // If the last row is used when placing an IceBlock in enteranceColumn, place only one ice block
+                while (true) {
+                    int col = (int) (Math.random() * columnCount) + 1; // Random column (1-indexed)
+                    if (lake.getPriorityObject(rowCount, col)!=null)
+                        continue;
+                    lake.setObject(rowCount, col, new IceBlock(iceBlocksPlaced));
+                    rowUsed[rowCount] = true;
+                    iceBlocksPlaced++;
+                    break;
+                }
+            }
+        }
+            
+
 
         while (iceBlocksPlaced < iceBlockCount) {
             int row = (int) (Math.random() * rowCount) + 1; // Random row (1-indexed)
@@ -193,11 +233,6 @@ public class FrozenLake {
 
         }
 
-        if (cliffSide == 3) {
-            // Add IceBlock to the row above the cliff
-            int randomColAboveCliff = (int) (Math.random() * columnCount) + 1; // Random Column (1-indexed)
-            lake.setObject(rowCount, randomColAboveCliff, new IceBlock(iceBlocksPlaced));
-        }
     }
 
     private void addHazards(FrozenLake lake, int entranceColumn, int cliffSide) {
@@ -254,7 +289,7 @@ public class FrozenLake {
         // Implementation of ice spike placement validation
         // Check:
         // 1. Next to a wall
-        if (!((row == 1 || row == rowCount) && (col == 1 || col == columnCount))) {
+        if (!(row == 1 || row == rowCount || col == 1 || col == columnCount)) {
             return false;
         }
         // 2. Not near entrance

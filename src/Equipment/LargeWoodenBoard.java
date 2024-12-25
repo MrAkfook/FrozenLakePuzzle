@@ -20,7 +20,7 @@ public class LargeWoodenBoard extends HazardEquipment{
 
     @Override
     public String showOnMap() {
-        return "LWB";
+        return "WB";
     }
 
 
