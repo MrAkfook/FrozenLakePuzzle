@@ -351,6 +351,7 @@ public class LakePuzzle {
                                     isValidLocationForExperiment(lake, equipment);
                                 } catch (IncompatibleResearchEquipmentLocationException e) {
                                     System.out.println(e.getMessage());
+                                    System.out.println("Choose the action of Researcher " + researcher.getId() + ":");
                                     continue;
                                 }
 
