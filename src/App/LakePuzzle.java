@@ -828,9 +828,9 @@ public class LakePuzzle {
             equipment.add(new ClimbingEquipment(i));
             equipment.add(new TemperatureDetector(i));
             equipment.add(new ProtectiveHelmet(i));
-            equipment.add(new TemperatureDetector(i));
             equipment.add(new Camera(i));
             equipment.add(new WindSpeedDetector(i));
+            equipment.add(new ChiselingEquipment(i));
         }
 
         return equipment;
