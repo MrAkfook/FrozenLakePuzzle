@@ -3,6 +3,7 @@ package Objects;
 import Bag.EquipmentBag;
 import Equipment.Equipment;
 import Exceptions.IncorrectBagContentsException;
+import Exceptions.UnavailableEquipmentException;
 import Interfaces.IMapPlaceable;
 
 public class Researcher implements IMapPlaceable{
@@ -30,8 +31,11 @@ public class Researcher implements IMapPlaceable{
         return null; //TODO: implement
     }
 
-    public boolean carryingResearchEquipment(){
-        return equipmentBag.hasResearchEquipment();
+    public boolean carryingResearchEquipment() throws UnavailableEquipmentException {
+        if(equipmentBag.hasResearchEquipment()){
+            return true;
+        }
+        throw new UnavailableEquipmentException("*** Researcher currently doesn't have any Research Equipment.");
     }
 
     public int getId(){

@@ -6,11 +6,12 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.LinkedList;
 import java.util.Set;
+
+import Bag.EquipmentBag;
 import Interfaces.*;
 
 import Equipment.*;
 import Exceptions.*;
-import Interfaces.IMapPlaceable;
 
 import java.util.HashSet;
 
@@ -18,21 +19,27 @@ public class LakePuzzle {
     public static final int ROW_COUNT = 8;
     public static final int COLUMN_COUNT = 11;
     private int cliffSide;
+    private Menu menu;
+    private FrozenLake lake;
+    private Queue<Researcher> researchers;
+    private Set<Experiment> experiments;
+    private Set<Equipment> equipmentStorage;
 
     public LakePuzzle() {
-        cliffSide = 0;
+        cliffSide = -1;
+        menu = new Menu();
+        lake = new FrozenLake();
+        cliffSide = ((int) (Math.random() * 3) + 1);
+        lake.initializeFrozenLake(cliffSide);
+        researchers = createResearchersQueue();
+        experiments = createExperimentsSet();
+        equipmentStorage = createEquipmentSet(2);
     }
 
     public static void main(String[] args) throws Exception {
         LakePuzzle lakePuzzle = new LakePuzzle();
-
-        FrozenLake lake = lakePuzzle.initializeFrozenLake();
-        Queue<Researcher> researchers = lakePuzzle.createResearchersQueue();
-        Set<Experiment> experiments = lakePuzzle.createExperimentsSet();
-        Set<Equipment> equipmentStorage = lakePuzzle.createEquipmentSet(2);
-
-        Menu menu = lakePuzzle.new Menu();
-        menu.start(lake, researchers, experiments, equipmentStorage);
+        lakePuzzle.menu.start(lakePuzzle.lake, lakePuzzle.researchers, lakePuzzle.experiments,
+                lakePuzzle.equipmentStorage);
 
     }
 
@@ -40,12 +47,15 @@ public class LakePuzzle {
         return cliffSide;
     }
 
+    public void setCiffSide(int cliffSide) {
+        this.cliffSide = cliffSide;
+    }
+
     private class Menu {
         private Scanner scanner;
         private boolean isInjured;
         private int researcherRow;
         private int researcherColumn;
-
 
         public Menu() {
             scanner = new Scanner(System.in);
@@ -55,7 +65,7 @@ public class LakePuzzle {
         public int getResearcherRow() {
             return researcherRow;
         }
-        
+
         public int getResearcherColumn() {
             return researcherColumn;
         }
@@ -68,18 +78,19 @@ public class LakePuzzle {
             this.researcherColumn = researcherColumn;
         }
 
-        public boolean isInjured() {
+        public boolean getIsInjured() {
             return isInjured;
         }
 
-        public void setInjured(boolean isInjured) {
+        public void setIsInjured(boolean isInjured) {
             this.isInjured = isInjured;
         }
 
         public void start(FrozenLake lake, Queue<Researcher> researchers, Set<Experiment> experiments,
                 Set<Equipment> equipmentStorage) {
-            // Show initial state of the lake, researchers, experiments, and equipment storage
-            setInjured(false); // Flag to indicate if a researcher has died
+            // Show initial state of the lake, researchers, experiments, and equipment
+            // storage
+            setIsInjured(false); // Flag to indicate if a researcher has died
             System.out.println("Welcome to Frozen Lake Puzzle App. There are " + researchers.size()
                     + " researchers waiting at the lake entrance.");
             System.out.println("There are " + experiments.size() + " experiment(s) that must be completed:");
@@ -140,15 +151,18 @@ public class LakePuzzle {
 
                         equipment = getEquipment(shortHand);
 
-                        for(Equipment e : equipmentStorage){ 
-                            if(e.getClass().equals(equipment.getClass())){
-                                equipment = e; //  If equipment is found in the equipment storage, the equipment object will be replaced with the one in the storage changing its id
+                        for (Equipment e : equipmentStorage) {
+                            if (e.getClass().equals(equipment.getClass())) {
+                                equipment = e; // If equipment is found in the equipment storage, the equipment object
+                                               // will be replaced with the one in the storage changing its id
                                 break;
                             }
                         }
 
-                        if (equipment.getId() == -1) { // If equipment is not found in the equipment storage its id will be -1
-                            System.out.println("*** There no more "+shortHand.toString()+" left in the Equipment Storage.");
+                        if (equipment.getId() == -1) { // If equipment is not found in the equipment storage its id will
+                                                       // be -1
+                            System.out.println(
+                                    "*** There no more " + shortHand.toString() + " left in the Equipment Storage.");
                             continue;
                         }
 
@@ -163,14 +177,16 @@ public class LakePuzzle {
                     }
 
                 }
-                
-                if (researcher.getId() == 1){
-                System.out.println("=====> Researcher "+researcher.getId()+" heads out to the lake. Select a direction to slide ([U] Up, [D] Down, [L] Left, [R] Right):");}
-                else{
-                    System.out.println("=====> Researcher "+researcher.getId()+" heads out to the lake. Select a direction to slide:");
+
+                if (researcher.getId() == 1) {
+                    System.out.println("=====> Researcher " + researcher.getId()
+                            + " heads out to the lake. Select a direction to slide ([U] Up, [D] Down, [L] Left, [R] Right):");
+                } else {
+                    System.out.println("=====> Researcher " + researcher.getId()
+                            + " heads out to the lake. Select a direction to slide:");
                 }
                 char direction = getDirection(lake);
-                while (true){
+                while (true) {
                     try {
                         checkIfDirectionIsAvailable(lake, direction);
                     } catch (UnavailableDirectionException e) {
@@ -178,81 +194,90 @@ public class LakePuzzle {
                         continue;
                     }
                     break;
-                    
+
                 }
-                State state = researcher.slide(lake, direction);
-                
-                while(true){
-                    switch (state){
-                        case LargeWoodenBoard:
-                            System.out.println("=====> Researcher "+researcher.getId()+" manages to stop safely on a Wooden Board." );
+                State state = slide(lake, researcherRow, researcherColumn, direction);
+
+                setIsInjured(determineInjury(state, researcher));
+
+                while (true) {
+                    switch (state) {
+                        case LARGE_WOODEN_BOARD:
+                            System.out.println("=====> Researcher " + researcher.getId()
+                                    + " manages to stop safely on a Wooden Board.");
                             break;
-                        case ClimbingEquipment:
-                            System.out.println("=====> Researcher "+researcher.getId()+" manages to climb back up the cliff using the Climbing Equipment." ); //TODO
+                        case CLIMBING_EQUIPMENT:
+                            System.out.println("=====> Researcher " + researcher.getId()
+                                    + " manages to climb back up the cliff using the Climbing Equipment."); // TODO
                             break;
-                        case CliffEdge:
-                            if(isInjured){
-                                System.out.println("=====> Researcher "+researcher.getId()+" falls off the cliff and gets injured.");
-                            }
-                            else{
+                        case CLIFF_EDGE:
+                            if (getIsInjured()) {
+                                System.out.println("=====> Researcher " + researcher.getId()
+                                        + " falls off the cliff and gets injured.");
+                            } else {
                                 System.out.println("!!! Researcher " + researcher.getId()
                                         + " is sliding towards the cliff edge and starts falling. However, Researcher "
                                         + researcher.getId() + " is carrying a Climbing Equipment. Researcher "
-                                        + researcher.getId()+ " sets the Climbing Equipment and manages to climb back up the cliff.");
+                                        + researcher.getId()
+                                        + " sets the Climbing Equipment and manages to climb back up the cliff.");
                             }
                             break;
-                        case HoleInIce:
-                            if(isInjured){
-                                System.out.println("=====> Researcher "+researcher.getId()+" falls into a hole in the ice and gets injured.");
-                            }
-                            else{
+                        case HOLE_IN_ICE:
+                            if (getIsInjured()) {
+                                System.out.println("=====> Researcher " + researcher.getId()
+                                        + " falls into a hole in the ice and gets injured.");
+                            } else {
                                 System.out.println("!!! Researcher " + researcher.getId()
                                         + " comes across a hole in ice. However, Researcher " + researcher.getId()
                                         + " is carrying a Large Wooden Board. Researcher " + researcher.getId()
                                         + " covers the ice with the board and starts standing on it. ");
                             }
                             break;
-                        case IceSpikes:
-                            if(isInjured){
-                                System.out.println("=====> The ice spikes falls on Researcher "+researcher.getId()+"'s head and injures the Researcher.");
-                            }
-                            else{
+                        case ICE_SPIKES:
+                            if (getIsInjured()) {
+                                System.out.println("=====> The ice spikes falls on Researcher " + researcher.getId()
+                                        + "'s head and injures the Researcher.");
+                            } else {
                                 System.out.println("!!! Researcher " + researcher.getId()
                                         + " comes across ice spikes. However, Researcher " + researcher.getId()
                                         + " is carrying a Protective Helmet. Researcher " + researcher.getId()
                                         + " wears the helmet and manages to survive the ice spikes falling.");
                             }
                             break;
-                        case IMapPlaceable:
-                            System.out.println("=====> Researcher "+researcher.getId()+" manages to stop safely." );
+                        case IMAP_PLACEABLE:
+                            System.out.println("=====> Researcher " + researcher.getId() + " manages to stop safely.");
                             break;
-                        
-                        
+
                     }
-                    if(isInjured){
+                    if (getIsInjured()) {
                         break;
                     }
                     System.out.println("[1] Continue moving on the ice. \r\n" + //
-                                        "[2] Choose experiment equipment and perform an experiment. \r\n" + //
-                                        "[3] Sit on the ground and let the other researchers head out to the lake. \r\n" + //
-                                        "Choose the action of Researcher "+researcher.getId()+":");
-                    while(true){
-                        int selection = getSelection(3);
-                        switch (selection){
+                            "[2] Choose experiment equipment and perform an experiment. \r\n" + //
+                            "[3] Sit on the ground and let the other researchers head out to the lake. \r\n" + //
+                            "Choose the action of Researcher " + researcher.getId() + ":");
+                    int selection = -1;
+                    while (true) {
+                        selection = getSelection(3);
+                        switch (selection) {
                             case 1:
                                 System.out.println("Select a direction to slide:");
                                 direction = getDirection(lake);
-                                state = slide(lake, direction);
+                                state = slide(lake,researcherRow,researcherColumn, direction);
+                                setIsInjured(determineInjury(state, researcher));
                                 break;
                             case 2:
                                 System.out.println("Select an experiment to perform:");
-                                if (!(researcher.carryingResearchEquipment())) {
-                                    System.out.println("Researcher "+ researcher.getId() +" is not carrying any research equipment.");
+                                try {
+                                    researcher.carryingResearchEquipment();
+                                } catch (UnavailableEquipmentException e) {
+                                    System.out.println("Researcher " + researcher.getId()
+                                            + " is not carrying any research equipment.");
                                     System.out.println("Choose the action of Researcher " + researcher.getId() + ":");
                                     continue;
                                 }
                                 ShortHand shortHand;
-                                while(true) {
+                                while (true) {
                                     System.out.println("=====> Enter the name of the research equipment:");
 
                                     try {
@@ -261,36 +286,52 @@ public class LakePuzzle {
                                         System.out.println("Invalid input. Please enter a valid equipment short name:");
                                         continue;
                                     }
+                                    break;
                                 }
 
                                 Equipment equipment = getEquipment(shortHand);
 
+                                for (Equipment e : researcher.getEquipmentBag()) {// TODO ADD EQUIPMENT BAG
+                                    if (e.getClass().equals(equipment.getClass())) {
+                                        equipment = e;
+                                        break;
+                                    }
+                                }
+
+                                if (equipment.getId() == -1) {
+                                    System.out.println("*** The selected equipment is not in the equipment bag.");
+                                    System.out.println("Choose the action of Researcher " + researcher.getId() + ":");
+                                    continue;
+                                }
+
                                 try {
-                                    isValidLocationForExperiment(lake,equipment); //####################################### BURDAYIM
-                                } catch (IncompatibleResearchEquipmentLocationException e){
+                                    isValidLocationForExperiment(lake, equipment);
+                                } catch (IncompatibleResearchEquipmentLocationException e) {
                                     System.out.println(e.getMessage());
                                     continue;
                                 }
 
-                                if (!(researcher.useEquipment(equipment))) {
-
-                                }
-
-
-
+                                researcher.useEquipment(equipment);
+                                System.out.println(
+                                        "--- The selected research equipment has been placed in the current location.");
+                                break;
+                            case 3:
+                                break;
                         }
                         break;
                     }
-
+                    if (selection == 3) {
+                        break;
+                    }
                 }
-                if (isInjured){
+                if (isInjured) {
                     break;
                 }
             }
 
             // 6. Start an experiment
             // 7. Exit
-            
+
         }
 
         private String getShorthand() {
@@ -335,8 +376,7 @@ public class LakePuzzle {
 
                 try {
                     checkIfDirectionIsAvailable(lake, input.toUpperCase().charAt(0));
-                } 
-                catch (Exception e) {
+                } catch (Exception e) {
                     System.out.println(e.getMessage());
                     continue;
                 }
@@ -345,36 +385,71 @@ public class LakePuzzle {
             return (input.toUpperCase().charAt(0));
         }
 
-        private boolean checkIfDirectionIsAvailable(FrozenLake lake, char direction) throws UnavailableDirectionException {
+        private boolean checkIfDirectionIsAvailable(FrozenLake lake, char direction)
+                throws UnavailableDirectionException {
             int row = getResearcherRow();
             int col = getResearcherColumn();
             boolean isValid = false;
 
             switch (direction) {
                 case 'U':
-                    isValid = !(lake.getPriorityObject(row - 1, col) instanceof IMapPlaceable) || (lake.getPriorityObject(row - 1, col) instanceof LargeWoodenBoard);
+                    isValid = !(lake.getPriorityObject(row - 1, col) instanceof IMapPlaceable)
+                            || (lake.getPriorityObject(row - 1, col) instanceof LargeWoodenBoard);
                     break;
                 case 'D':
-                    isValid = !(lake.getPriorityObject(row + 1, col) instanceof IMapPlaceable) || (lake.getPriorityObject(row + 1, col) instanceof LargeWoodenBoard);
+                    isValid = !(lake.getPriorityObject(row + 1, col) instanceof IMapPlaceable)
+                            || (lake.getPriorityObject(row + 1, col) instanceof LargeWoodenBoard);
                     break;
                 case 'L':
-                    isValid = !(lake.getPriorityObject(row, col - 1) instanceof IMapPlaceable) || (lake.getPriorityObject(row, col - 1) instanceof LargeWoodenBoard);
+                    isValid = !(lake.getPriorityObject(row, col - 1) instanceof IMapPlaceable)
+                            || (lake.getPriorityObject(row, col - 1) instanceof LargeWoodenBoard);
                     break;
                 case 'R':
-                    isValid = !(lake.getPriorityObject(row, col + 1) instanceof IMapPlaceable) || (lake.getPriorityObject(row, col + 1) instanceof LargeWoodenBoard);
+                    isValid = !(lake.getPriorityObject(row, col + 1) instanceof IMapPlaceable)
+                            || (lake.getPriorityObject(row, col + 1) instanceof LargeWoodenBoard);
                     break;
-                default:   
+                default:
             }
 
             if (!isValid) {
-                throw new UnavailableDirectionException("*** The input direction is unavailable. Please enter an available direction:");
+                throw new UnavailableDirectionException(
+                        "*** The input direction is unavailable. Please enter an available direction:");
             }
 
             return isValid;
         }
-                
+
         enum State {
-            LargeWoodenBoard, ClimbingEquipment, CliffEdge, HoleInIce, IceSpikes, IMapPlaceable;
+            LARGE_WOODEN_BOARD, CLIMBING_EQUIPMENT, CLIFF_EDGE, HOLE_IN_ICE, ICE_SPIKES, IMAP_PLACEABLE;
+        }
+
+        private boolean determineInjury(State state, Researcher researcher) {
+            boolean isInjured = false;
+            EquipmentBag<Equipment> equipmentBag = researcher.getEquipmentBag();
+            Equipment neededEquipment = null;
+            switch (state) {
+                case CLIFF_EDGE:
+                    neededEquipment = new CliffEdge().getOvercomeBy();
+                    break;
+                case HOLE_IN_ICE:
+                    neededEquipment = new HoleInIce().getOvercomeBy();
+                    break;
+                case ICE_SPIKES:
+                    neededEquipment = new IceSpikes().getOvercomeBy();
+                    break;
+                default:
+                    break;
+            }
+            for (Equipment e : equipmentBag) {
+                if (e.getClass().equals(neededEquipment.getClass())) {
+                    isInjured = false;
+                    break;
+                } else {
+                    isInjured = true;
+                }
+            }
+            researcher.useEquipment(neededEquipment);
+            return isInjured;
         }
 
         private Equipment getEquipment(ShortHand shortHand) {
@@ -407,42 +482,46 @@ public class LakePuzzle {
             return equipment;
         }
 
-        private boolean isValidLocationForExperiment(FrozenLake lake, Equipment equipment) throws IncompatibleResearchEquipmentLocationException{
+        private boolean isValidLocationForExperiment(FrozenLake lake, Equipment equipment)
+                throws IncompatibleResearchEquipmentLocationException {
             int row = getResearcherRow();
             int col = getResearcherColumn();
-            
+
             ResearchEquipment researchEquipment = (ResearchEquipment) equipment;
 
             if (researchEquipment instanceof TemperatureDetector) {
-                if((lake.getPriorityObject(row - 1, col) instanceof IceBlock) || 
-                (lake.getPriorityObject(row + 1, col) instanceof IceBlock) || 
-                (lake.getPriorityObject(row, col - 1) instanceof IceBlock) || 
-                (lake.getPriorityObject(row, col + 1) instanceof IceBlock) || 
-                (lake.getPriorityObject(row - 1, col) instanceof Wall) || 
-                (lake.getPriorityObject(row + 1, col) instanceof Wall) ||
-                (lake.getPriorityObject(row, col - 1) instanceof Wall) ||
-                (lake.getPriorityObject(row, col + 1) instanceof Wall)){
-                    throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
+                if ((lake.getPriorityObject(row - 1, col) instanceof IceBlock) ||
+                        (lake.getPriorityObject(row + 1, col) instanceof IceBlock) ||
+                        (lake.getPriorityObject(row, col - 1) instanceof IceBlock) ||
+                        (lake.getPriorityObject(row, col + 1) instanceof IceBlock) ||
+                        (lake.getPriorityObject(row - 1, col) instanceof Wall) ||
+                        (lake.getPriorityObject(row + 1, col) instanceof Wall) ||
+                        (lake.getPriorityObject(row, col - 1) instanceof Wall) ||
+                        (lake.getPriorityObject(row, col + 1) instanceof Wall)) {
+                    throw new IncompatibleResearchEquipmentLocationException(
+                            "*** The selected research equipment is incompatible with the current location.");
                 }
-                    
+
             } else if (researchEquipment instanceof WindSpeedDetector) {
-                if((lake.getPriorityObject(row - 1, col) instanceof IDangerousHazard) || 
-                (lake.getPriorityObject(row + 1, col) instanceof IDangerousHazard) || 
-                (lake.getPriorityObject(row, col - 1) instanceof IDangerousHazard) || 
-                (lake.getPriorityObject(row, col + 1) instanceof IDangerousHazard)){
-                    throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
+                if ((lake.getPriorityObject(row - 1, col) instanceof IDangerousHazard) ||
+                        (lake.getPriorityObject(row + 1, col) instanceof IDangerousHazard) ||
+                        (lake.getPriorityObject(row, col - 1) instanceof IDangerousHazard) ||
+                        (lake.getPriorityObject(row, col + 1) instanceof IDangerousHazard)) {
+                    throw new IncompatibleResearchEquipmentLocationException(
+                            "*** The selected research equipment is incompatible with the current location.");
                 }
             } else if (researchEquipment instanceof Camera) {
                 int i = 1;
-                while(true) {
-                    switch(getCliffSide()) {
+                while (true) {
+                    switch (getCliffSide()) {
                         case 1:
                             if (lake.getPriorityObject(row, col - i) instanceof CliffEdge) {
                                 return true;
                             }
 
-                            if(lake.getPriorityObject(row, col - i) instanceof Hazard){
-                                throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
+                            if (lake.getPriorityObject(row, col - i) instanceof Hazard) {
+                                throw new IncompatibleResearchEquipmentLocationException(
+                                        "*** The selected research equipment is incompatible with the current location.");
                             }
                             i++;
                             break;
@@ -451,8 +530,9 @@ public class LakePuzzle {
                                 return true;
                             }
 
-                            if(lake.getPriorityObject(row, col + i) instanceof Hazard){
-                                throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
+                            if (lake.getPriorityObject(row, col + i) instanceof Hazard) {
+                                throw new IncompatibleResearchEquipmentLocationException(
+                                        "*** The selected research equipment is incompatible with the current location.");
                             }
                             i++;
                             break;
@@ -461,8 +541,9 @@ public class LakePuzzle {
                                 return true;
                             }
 
-                            if(lake.getPriorityObject(row + i, col) instanceof Hazard){
-                                throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
+                            if (lake.getPriorityObject(row + i, col) instanceof Hazard) {
+                                throw new IncompatibleResearchEquipmentLocationException(
+                                        "*** The selected research equipment is incompatible with the current location.");
                             }
                             i++;
                             break;
@@ -471,190 +552,149 @@ public class LakePuzzle {
 
                     }
                 }
-            
+
             } else if (researchEquipment instanceof ChiselingEquipment) {
-                if((lake.getPriorityObject(row - 1, col) instanceof IceBlock) || 
-                (lake.getPriorityObject(row + 1, col) instanceof IceBlock) || 
-                (lake.getPriorityObject(row, col - 1) instanceof IceBlock) || 
-                (lake.getPriorityObject(row, col + 1) instanceof IceBlock)) {
+                if ((lake.getPriorityObject(row - 1, col) instanceof IceBlock) ||
+                        (lake.getPriorityObject(row + 1, col) instanceof IceBlock) ||
+                        (lake.getPriorityObject(row, col - 1) instanceof IceBlock) ||
+                        (lake.getPriorityObject(row, col + 1) instanceof IceBlock)) {
                     return true;
                 } else {
-                    throw new IncompatibleResearchEquipmentLocationException("*** The selected research equipment is incompatible with the current location.");
+                    throw new IncompatibleResearchEquipmentLocationException(
+                            "*** The selected research equipment is incompatible with the current location.");
                 }
-            } 
-            return false;
-        }
-
-    }
-
-    
-
-    private FrozenLake initializeFrozenLake() {
-        // Create the FrozenLake with 8x11 dimensions
-        FrozenLake lake = new FrozenLake(ROW_COUNT, COLUMN_COUNT);
-
-        // Set the entrance at the upper middle square
-        int entranceColumn = (COLUMN_COUNT + 1) / 2; // Middle column (0-indexed)
-
-        // Randomly choose the cliffside (1: left, 2: right, 3: bottom)
-        this.cliffSide = (int) (Math.random() * 3) + 1;
-
-        // Add walls to the all edges, except the entrance
-        addWalls(lake, entranceColumn);
-
-        // Add CliffEdge based on the randomly chosen side
-        addCliffEdge(lake, cliffSide);
-
-        // Add IceBlocks
-        addIceBlocks(lake, entranceColumn, cliffSide);
-
-        // Add Hazards
-        addHazards(lake, entranceColumn, cliffSide);
-
-        return lake;
-    }
-
-    private void addWalls(FrozenLake lake, int entranceColumn) {
-        // Add walls to upper edge except the entrance
-        for (int col = 0; col < COLUMN_COUNT + 2; col++) {
-            if (col != entranceColumn) {
-                lake.setObject(0, col, new Wall());
             }
+            return false;
         }
 
-        // add walls to the lower edge
-        for (int col = 0; col < COLUMN_COUNT + 2; col++) {
-            lake.setObject(ROW_COUNT + 1, col, new Wall());
-        }
-
-        for (int row = 0; row < ROW_COUNT + 2; row++) {
-            // Add walls to the left edge
-            lake.setObject(row, 0, new Wall());
-            // Add walls to the right edge
-            lake.setObject(row, COLUMN_COUNT + 1, new Wall());
-        }
     }
 
-    private void addCliffEdge(FrozenLake lake, int cliffSide) {
-        switch (cliffSide) {
-            case 1: // Left side
-                for (int row = 1; row < ROW_COUNT + 1; row++) {
-                    lake.setObject(row, 0, new CliffEdge());
-                }
-                break;
-            case 2: // Right side
-                for (int row = 1; row < ROW_COUNT + 1; row++) {
-                    lake.setObject(row, COLUMN_COUNT + 1, new CliffEdge());
-                }
-                break;
-            case 3: // Bottom side
-                for (int col = 1; col < COLUMN_COUNT + 1; col++) {
-                    lake.setObject(ROW_COUNT + 1, col, new CliffEdge());
-                }
-                break;
-        }
-    }
-
-    private void addIceBlocks(FrozenLake lake, int entranceColumn, int cliffSide) {
-        // Ensure 8 IceBlocks, one per row, not blocking entrance
-        // Ensure at least one IceBlock in the middle column below the entrance
-        int iceBlockCount = 8;
-        boolean[] rowUsed = new boolean[ROW_COUNT + 2];
-        int iceBlocksPlaced = 0;
-
-        // Place IceBlock to the column below the entrance
-        int randomRow = (int) (Math.random() * ROW_COUNT) + 1; // Random row (1-indexed)
-        lake.setObject(randomRow, entranceColumn, new IceBlock(iceBlocksPlaced));
-        rowUsed[randomRow] = true;
-        iceBlocksPlaced++;
-
-        while (iceBlocksPlaced < iceBlockCount) {
-            int row = (int) (Math.random() * ROW_COUNT) + 1; // Random row (1-indexed)
-
-            // Skip if row already used or is the entrance row
-            if (rowUsed[row] || row <= 0 || row >= ROW_COUNT + 1)
-                continue;
-
-            // Place IceBlock
-            if (row > 0 && row < ROW_COUNT + 1) {
-                int col = 0;
-                do {
-                    col = (int) (Math.random() * COLUMN_COUNT) + 1; // Random column (1-indexed)
-                } while (row == 1 && col == entranceColumn); // Skip if blocking entrance
-                lake.setObject(row, col, new IceBlock(iceBlocksPlaced));
-
-                rowUsed[row] = true;
-                iceBlocksPlaced++;
+    public Menu.State slide(FrozenLake lake, int researcherRow, int researcherColumn, char direction) {
+        int row = researcherRow;
+        int col = researcherColumn;
+        Menu.State state = null;
+        int i = 1;
+        while (true) {
+            switch (direction) {
+                case 'U':
+                    if (lake.getPriorityObject(row - i, col) instanceof LargeWoodenBoard) {
+                        this.menu.setResearcherRow(row - i);
+                        state = Menu.State.LARGE_WOODEN_BOARD;
+                        return state;
+                    } else if (lake.getPriorityObject(row - i, col) instanceof ClimbingEquipment) { // This is
+                                                                                                    // impossible to
+                                                                                                    // encounter in the
+                                                                                                    // current set of
+                                                                                                    // rules
+                        this.menu.setResearcherRow(row - i + 1);
+                        state = Menu.State.CLIMBING_EQUIPMENT;
+                        return state;
+                    } else if (lake.getPriorityObject(row - i, col) instanceof CliffEdge) { // This is impossible to
+                                                                                            // encounter in the current
+                                                                                            // set of rules
+                        this.menu.setResearcherRow(row - i + 1);
+                        state = Menu.State.CLIFF_EDGE;
+                        return state;
+                    } else if (lake.getPriorityObject(row - i, col) instanceof HoleInIce) {
+                        this.menu.setResearcherRow(row - i);
+                        state = Menu.State.HOLE_IN_ICE;
+                        return state;
+                    } else if (lake.getPriorityObject(row - i, col) instanceof IceSpikes) {
+                        this.menu.setResearcherRow(row - i);
+                        state = Menu.State.LARGE_WOODEN_BOARD;
+                        return state;
+                    } else if (lake.getPriorityObject(row - i, col) instanceof IMapPlaceable) {
+                        this.menu.setResearcherRow(row - i + 1);
+                        state = Menu.State.IMAP_PLACEABLE;
+                        return state;
+                    }
+                    break;
+                case 'D':
+                    if (lake.getPriorityObject(row + i, col) instanceof LargeWoodenBoard) {
+                        this.menu.setResearcherRow(row + i);
+                        state = Menu.State.LARGE_WOODEN_BOARD;
+                        return state;
+                    } else if (lake.getPriorityObject(row + i, col) instanceof ClimbingEquipment) {
+                        this.menu.setResearcherRow(row + i - 1);
+                        state = Menu.State.CLIMBING_EQUIPMENT;
+                        return state;
+                    } else if (lake.getPriorityObject(row + i, col) instanceof CliffEdge) {
+                        this.menu.setResearcherRow(row + i - 1);
+                        state = Menu.State.CLIFF_EDGE;
+                        return state;
+                    } else if (lake.getPriorityObject(row + i, col) instanceof HoleInIce) {
+                        this.menu.setResearcherRow(row + i);
+                        state = Menu.State.HOLE_IN_ICE;
+                        return state;
+                    } else if (lake.getPriorityObject(row + i, col) instanceof IceSpikes) {
+                        this.menu.setResearcherRow(row + i);
+                        state = Menu.State.ICE_SPIKES;
+                        return state;
+                    } else if (lake.getPriorityObject(row + 1, col) instanceof IMapPlaceable) {
+                        this.menu.setResearcherRow(row + i - 1);
+                        state = Menu.State.IMAP_PLACEABLE;
+                        return state;
+                    }
+                    break;
+                case 'L':
+                    if (lake.getPriorityObject(row, col - i) instanceof LargeWoodenBoard) {
+                        this.menu.setResearcherColumn(col - i);
+                        state = Menu.State.LARGE_WOODEN_BOARD;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col - i) instanceof ClimbingEquipment) {
+                        this.menu.setResearcherColumn(col - i + 1);
+                        state = Menu.State.CLIMBING_EQUIPMENT;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col - i) instanceof CliffEdge) {
+                        this.menu.setResearcherColumn(col - i + 1);
+                        state = Menu.State.CLIFF_EDGE;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col - i) instanceof HoleInIce) {
+                        this.menu.setResearcherColumn(col - i);
+                        state = Menu.State.HOLE_IN_ICE;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col - i) instanceof IceSpikes) {
+                        this.menu.setResearcherColumn(col - i);
+                        state = Menu.State.ICE_SPIKES;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col - 1) instanceof IMapPlaceable) {
+                        this.menu.setResearcherColumn(col - i + 1);
+                        state = Menu.State.IMAP_PLACEABLE;
+                        return state;
+                    }
+                    break;
+                case 'R':
+                    if (lake.getPriorityObject(row, col + i) instanceof LargeWoodenBoard) {
+                        this.menu.setResearcherColumn(col + i);
+                        state = Menu.State.LARGE_WOODEN_BOARD;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col + i) instanceof ClimbingEquipment) {
+                        this.menu.setResearcherColumn(col + i - 1);
+                        state = Menu.State.CLIMBING_EQUIPMENT;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col + i) instanceof CliffEdge) {
+                        this.menu.setResearcherColumn(col + i - 1);
+                        state = Menu.State.CLIFF_EDGE;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col + i) instanceof HoleInIce) {
+                        this.menu.setResearcherColumn(col + i);
+                        state = Menu.State.HOLE_IN_ICE;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col + i) instanceof IceSpikes) {
+                        this.menu.setResearcherColumn(col + i);
+                        state = Menu.State.ICE_SPIKES;
+                        return state;
+                    } else if (lake.getPriorityObject(row, col + 1) instanceof IMapPlaceable) {
+                        this.menu.setResearcherColumn(col + i - 1);
+                        state = Menu.State.IMAP_PLACEABLE;
+                        return state;
+                    }
+                    break;
+                default:
+                    break;
             }
-
+            i++; // Increment i to check the next cell
         }
-
-        if (cliffSide == 3) {
-            // Add IceBlock to the row above the cliff
-            int randomColAboveCliff = (int) (Math.random() * COLUMN_COUNT) + 1; // Random Column (1-indexed)
-            lake.setObject(ROW_COUNT, randomColAboveCliff, new IceBlock(iceBlocksPlaced));
-        }
-    }
-
-    private void addHazards(FrozenLake lake, int entranceColumn, int cliffSide) {
-        // Add 3 HoleInIce
-        int holeCount = 0;
-        while (holeCount < 3) {
-            int row = (int) (Math.random() * ROW_COUNT) + 1; // Random row (1-indexed)
-            int col = (int) (Math.random() * COLUMN_COUNT) + 1; // Random column (1-indexed)
-
-            // Avoid placing near entrance or on cliffside
-            if (isValidHoleInIcePlacement(lake, row, col, entranceColumn, cliffSide)) {
-                lake.setObject(row, col, new HoleInIce(holeCount));
-                holeCount++;
-            }
-        }
-
-        // Add 3 IceSpikes next to walls
-        int iceSpikeCount = 0;
-        while (iceSpikeCount < 3) {
-            int row = (int) (Math.random() * ROW_COUNT) + 1; // Random row (1-indexed)
-            int col = (int) (Math.random() * COLUMN_COUNT) + 1; // Random column (1-indexed)
-
-            // Check if next to a wall and not near entrance or cliffside
-            if (isValidIceSpikePlacement(lake, row, col, entranceColumn, cliffSide)) {
-                lake.setObject(row, col, new IceSpikes(iceSpikeCount));
-                iceSpikeCount++;
-            }
-        }
-    }
-
-    private boolean isValidHoleInIcePlacement(FrozenLake lake, int row, int col, int entranceColumn, int cliffSide) {
-        // Implementation of hazard placement validation
-        // Check:
-        // 1. Not within 3 squares of entrance
-        // 2. Not on cliffside
-        // 3. No existing hazards on the square
-        return true; // Placeholder
-    }
-
-    private boolean isValidIceSpikePlacement(FrozenLake lake, int row, int col, int entranceColumn, int cliffSide) {
-        // Implementation of ice spike placement validation
-        // Check:
-        // 1. Next to a wall
-        if (!((row == 1 || row == ROW_COUNT) && (col == 1 || col == COLUMN_COUNT))) {
-            return false;
-        }
-        // 2. Not near entrance
-        if ((row == 1) && (col >= entranceColumn - 2 && col <= entranceColumn + 2)) { // TODO: hocadan dönüş alınacak
-            return false;
-        }
-        // 3. Not on cliffside
-        if ((cliffSide == 1 && col == 1) || (cliffSide == 2 && col == COLUMN_COUNT)
-                || (cliffSide == 3 && row == ROW_COUNT)) {
-            return false;
-        }
-        // 4. No existing hazards on the square
-        if (lake.getPriorityObject(row, col) instanceof Hazard) {
-            return false;
-        }
-
-        return true;
     }
 
     private Queue<Researcher> createResearchersQueue() {

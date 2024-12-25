@@ -5,6 +5,10 @@ import java.util.List;
 
 import Interfaces.IMapPlaceable;
 import Objects.CliffEdge;
+import Objects.Hazard;
+import Objects.HoleInIce;
+import Objects.IceBlock;
+import Objects.IceSpikes;
 import Objects.Wall;
 
 public class FrozenLake {
@@ -41,6 +45,28 @@ public class FrozenLake {
             }
             frozenLake.add(row);
         }
+    }
+
+    public FrozenLake initializeFrozenLake(int cliffSide) {
+        // Create the FrozenLake with 8x11 dimensions
+        FrozenLake lake = new FrozenLake(rowCount, columnCount);
+
+        // Set the entrance at the upper middle square
+        int entranceColumn = (columnCount + 1) / 2; // Middle column (0-indexed)
+
+        // Add walls to the all edges, except the entrance
+        addWalls(lake, entranceColumn);
+
+        // Add CliffEdge based on the randomly chosen side
+        addCliffEdge(lake, cliffSide);
+
+        // Add IceBlocks
+        addIceBlocks(lake, entranceColumn, cliffSide);
+
+        // Add Hazards
+        addHazards(lake, entranceColumn, cliffSide);
+
+        return lake;
     }
 
     // getters and setters
@@ -89,6 +115,150 @@ public class FrozenLake {
             }
             System.out.println("      "+"-"+"------".repeat(columnCount));
         }
+    }
+
+    // Helper methods
+        private void addWalls(FrozenLake lake, int entranceColumn) {
+        // Add walls to upper edge except the entrance
+        for (int col = 0; col < columnCount + 2; col++) {
+            if (col != entranceColumn) {
+                lake.setObject(0, col, new Wall());
+            }
+        }
+
+        // add walls to the lower edge
+        for (int col = 0; col < columnCount + 2; col++) {
+            lake.setObject(rowCount + 1, col, new Wall());
+        }
+
+        for (int row = 0; row < rowCount + 2; row++) {
+            // Add walls to the left edge
+            lake.setObject(row, 0, new Wall());
+            // Add walls to the right edge
+            lake.setObject(row, columnCount + 1, new Wall());
+        }
+    }
+
+    private void addCliffEdge(FrozenLake lake, int cliffSide) {
+        switch (cliffSide) {
+            case 1: // Left side
+                for (int row = 1; row < rowCount + 1; row++) {
+                    lake.setObject(row, 0, new CliffEdge());
+                }
+                break;
+            case 2: // Right side
+                for (int row = 1; row < rowCount + 1; row++) {
+                    lake.setObject(row, columnCount + 1, new CliffEdge());
+                }
+                break;
+            case 3: // Bottom side
+                for (int col = 1; col < columnCount + 1; col++) {
+                    lake.setObject(rowCount + 1, col, new CliffEdge());
+                }
+                break;
+        }
+    }
+
+    private void addIceBlocks(FrozenLake lake, int entranceColumn, int cliffSide) {
+        // Ensure 8 IceBlocks, one per row, not blocking entrance
+        // Ensure at least one IceBlock in the middle column below the entrance
+        int iceBlockCount = 8;
+        boolean[] rowUsed = new boolean[rowCount + 2];
+        int iceBlocksPlaced = 0;
+
+        // Place IceBlock to the column below the entrance
+        int randomRow = (int) (Math.random() * rowCount) + 1; // Random row (1-indexed)
+        lake.setObject(randomRow, entranceColumn, new IceBlock(iceBlocksPlaced));
+        rowUsed[randomRow] = true;
+        iceBlocksPlaced++;
+
+        while (iceBlocksPlaced < iceBlockCount) {
+            int row = (int) (Math.random() * rowCount) + 1; // Random row (1-indexed)
+
+            // Skip if row already used or is the entrance row
+            if (rowUsed[row] || row <= 0 || row >= rowCount + 1)
+                continue;
+
+            // Place IceBlock
+            if (row > 0 && row < rowCount + 1) {
+                int col = 0;
+                do {
+                    col = (int) (Math.random() * columnCount) + 1; // Random column (1-indexed)
+                } while (row == 1 && col == entranceColumn); // Skip if blocking entrance
+                lake.setObject(row, col, new IceBlock(iceBlocksPlaced));
+
+                rowUsed[row] = true;
+                iceBlocksPlaced++;
+            }
+
+        }
+
+        if (cliffSide == 3) {
+            // Add IceBlock to the row above the cliff
+            int randomColAboveCliff = (int) (Math.random() * columnCount) + 1; // Random Column (1-indexed)
+            lake.setObject(rowCount, randomColAboveCliff, new IceBlock(iceBlocksPlaced));
+        }
+    }
+
+    private void addHazards(FrozenLake lake, int entranceColumn, int cliffSide) {
+        // Add 3 HoleInIce
+        int holeCount = 0;
+        while (holeCount < 3) {
+            int row = (int) (Math.random() * rowCount) + 1; // Random row (1-indexed)
+            int col = (int) (Math.random() * columnCount) + 1; // Random column (1-indexed)
+
+            // Avoid placing near entrance or on cliffside
+            if (isValidHoleInIcePlacement(lake, row, col, entranceColumn, cliffSide)) {
+                lake.setObject(row, col, new HoleInIce(holeCount));
+                holeCount++;
+            }
+        }
+
+        // Add 3 IceSpikes next to walls
+        int iceSpikeCount = 0;
+        while (iceSpikeCount < 3) {
+            int row = (int) (Math.random() * rowCount) + 1; // Random row (1-indexed)
+            int col = (int) (Math.random() * columnCount) + 1; // Random column (1-indexed)
+
+            // Check if next to a wall and not near entrance or cliffside
+            if (isValidIceSpikePlacement(lake, row, col, entranceColumn, cliffSide)) {
+                lake.setObject(row, col, new IceSpikes(iceSpikeCount));
+                iceSpikeCount++;
+            }
+        }
+    }
+
+    private boolean isValidHoleInIcePlacement(FrozenLake lake, int row, int col, int entranceColumn, int cliffSide) {
+        // Implementation of hazard placement validation
+        // Check:
+        // 1. Not within 3 squares of entrance
+        // 2. Not on cliffside
+        // 3. No existing hazards on the square
+        return true; // Placeholder
+    }
+
+    private boolean isValidIceSpikePlacement(FrozenLake lake, int row, int col, int entranceColumn, int cliffSide) {
+        // Implementation of ice spike placement validation
+        // Check:
+        // 1. Next to a wall
+        if (!((row == 1 || row == rowCount) && (col == 1 || col == columnCount))) {
+            return false;
+        }
+        // 2. Not near entrance
+        if ((row == 1) && (col >= entranceColumn - 2 && col <= entranceColumn + 2)) { // TODO: hocadan dönüş alınacak
+            return false;
+        }
+        // 3. Not on cliffside
+        if ((cliffSide == 1 && col == 1) || (cliffSide == 2 && col == columnCount)
+                || (cliffSide == 3 && row == rowCount)) {
+            return false;
+        }
+        // 4. No existing hazards on the square
+        if (lake.getPriorityObject(row, col) instanceof Hazard) {
+            return false;
+        }
+
+        return true;
     }
 
 }
