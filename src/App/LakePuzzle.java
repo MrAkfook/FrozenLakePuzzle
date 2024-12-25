@@ -207,7 +207,7 @@ public class LakePuzzle {
                             break;
                         case CLIMBING_EQUIPMENT:
                             System.out.println("=====> Researcher " + researcher.getId()
-                                    + " manages to climb back up the cliff using the Climbing Equipment."); // TODO
+                                    + " manages to climb back up the cliff using the Climbing Equipment.");
                             break;
                         case CLIFF_EDGE:
                             if (getIsInjured()) {
@@ -293,7 +293,7 @@ public class LakePuzzle {
 
                                 Equipment equipment = getEquipment(shortHand);
 
-                                for (Equipment e : researcher.getEquipmentBagArray()) {// TODO ADD EQUIPMENT BAG
+                                for (Equipment e : researcher.getEquipmentBagArray()) {
                                     if (e.getClass().equals(equipment.getClass())) {
                                         equipment = e;
                                         break;

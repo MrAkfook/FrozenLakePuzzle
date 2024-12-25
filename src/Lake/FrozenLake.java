@@ -232,9 +232,22 @@ public class FrozenLake {
         // Implementation of hazard placement validation
         // Check:
         // 1. Not within 3 squares of entrance
+        if ((row == 1) && (col >= entranceColumn - 2 && col <= entranceColumn + 2)) {
+            return false;
+        }
+        if ((col == entranceColumn) && (row >= 1 && row <= 3)) {
+            return false;
+        }
         // 2. Not on cliffside
+        if ((cliffSide == 1 && col == 1) || (cliffSide == 2 && col == columnCount)
+                || (cliffSide == 3 && row == rowCount)) {
+            return false;
+        }
         // 3. No existing hazards on the square
-        return true; // Placeholder
+        if (lake.getPriorityObject(row, col) instanceof IMapPlaceable) {
+            return false;
+        }
+        return true;
     }
 
     private boolean isValidIceSpikePlacement(FrozenLake lake, int row, int col, int entranceColumn, int cliffSide) {
@@ -245,7 +258,7 @@ public class FrozenLake {
             return false;
         }
         // 2. Not near entrance
-        if ((row == 1) && (col >= entranceColumn - 2 && col <= entranceColumn + 2)) { // TODO: hocadan dönüş alınacak
+        if ((row == 1) && (col >= entranceColumn - 2 && col <= entranceColumn + 2)) {
             return false;
         }
         // 3. Not on cliffside
