@@ -16,8 +16,6 @@ import Objects.Experiment;
  * The getExperiment method is an abstract method that should be implemented to return 
  * the Experiment associated with this ResearchEquipment.
  * 
- * 
- * @author 
  */
 public abstract class ResearchEquipment extends Equipment{
 

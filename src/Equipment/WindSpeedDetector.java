@@ -17,7 +17,6 @@ import Objects.Experiment;
  * The getExperiment method returns the type of experiment associated with this equipment, 
  * which is WIND_SPEED_MEASUREMENT.
  * 
- * @author 
  */
 public class WindSpeedDetector extends ResearchEquipment {
 

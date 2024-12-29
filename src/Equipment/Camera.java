@@ -14,8 +14,6 @@ import Objects.Experiment;
  * The equals method is overridden to compare Camera objects based on their working status and inherited properties.
  * The getExperiment method returns the specific experiment type associated with the camera.
  * 
- * 
- * @author 
  */
 public class Camera extends ResearchEquipment{
 
