@@ -24,20 +24,22 @@ public class LakePuzzle {
     private Set<Equipment> equipmentStorage;
 
     public LakePuzzle() {
-        cliffSide = -1;
+        cliffSide = -1;             
         menu = new Menu();
         lake = new FrozenLake();
-        cliffSide = ((int) (Math.random() * 3) + 1);
-        lake.initializeFrozenLake(cliffSide);
-        researchers = createResearchersQueue();
-        experiments = createExperimentsSet();
-        equipmentStorage = createEquipmentSet(2);
+        cliffSide = ((int) (Math.random() * 3) + 1);    // Random number between 1 and 3
+        lake.initializeFrozenLake(cliffSide);           // Initialize the frozen lake
+        researchers = createResearchersQueue();         // Create a queue of researchers randomly between 2 and 4
+        experiments = createExperimentsSet();           // Create a set of experiments randomly between 1 and 4
+        equipmentStorage = createEquipmentSet(2);    // Create a set of equipment with 2 of each equipment
     }
 
+    // Starts the puzzle
     public void startPuzzle() {
         menu.start(lake, researchers, experiments, equipmentStorage);
     }
 
+    // Getters and Setters
     public int getCliffSide() {
         return cliffSide;
     }
@@ -54,11 +56,11 @@ public class LakePuzzle {
         Set<ResearchEquipment> placedEquipments;
 
         public Menu() {
-            scanner = new Scanner(System.in);
-            placedEquipments = new HashSet<ResearchEquipment>();
+            scanner = new Scanner(System.in);                   // Scanner object to read user input, must be done like this otherwise buggy
+            placedEquipments = new HashSet<ResearchEquipment>();// Set to keep track of placed research equipments to check if the goal is reached
         }
 
-        // gettters and setters
+        // Gettters and Setters
         public int getResearcherRow() {
             return researcherRow;
         }
@@ -83,11 +85,12 @@ public class LakePuzzle {
             this.isInjured = isInjured;
         }
 
+        // Starts the menu dialog
         public void start(FrozenLake lake, Queue<Researcher> researchers, Set<Experiment> experiments,
                 Set<Equipment> equipmentStorage) {
-            // Show initial state of the lake, researchers, experiments, and equipment
+            // 1. Show initial state of the lake, researchers, experiments, and equipment
             // storage
-            setIsInjured(false); // Flag to indicate if a researcher has died
+            setIsInjured(false); // Flag to indicate if a researcher has been injured
             System.out.println("Welcome to Frozen Lake Puzzle App. There are " + researchers.size()
                     + " researchers waiting at the lake entrance.");
             System.out.println("There are " + experiments.size() + " experiment(s) that must be completed:");
@@ -95,18 +98,18 @@ public class LakePuzzle {
                 System.out.println("- " + experiment.toString());
             }
             System.out.println("The initial map of the frozen lake: ");
-            lake.setObject(1, (COLUMN_COUNT + 1) / 2, researchers.peek());
+            lake.setObject(1, (COLUMN_COUNT + 1) / 2, researchers.peek()); // Set the first researcher to the entrance
             lake.showLake();
 
             for (Researcher researcher : researchers) {
-                // 3. Display the researcher
-                // 4. Display the equipment storage
+                // 2. Announce the researcher
+                
 
-                researcherRow = 1;
-                researcherColumn = (COLUMN_COUNT + 1) / 2;
-                lake.setObject(researcherRow, researcherColumn, researcher);
+                researcherRow = 1;                          // initialize row of the researcher
+                researcherColumn = (COLUMN_COUNT + 1) / 2;  // initialize column of the researcher
+                lake.setObject(researcherRow, researcherColumn, researcher);    // Set the researcher to the entrance
 
-                if (researcher.getId() == 1) {
+                if (researcher.getId() == 1) {// 3. Display the equipment storage for only the first researcher
                     System.out.println(
                             "=====> Researcher 1 starts waiting at the entrance and can select up to 3 pieces of equipment of the \r\n"
                                     + //
@@ -127,7 +130,7 @@ public class LakePuzzle {
                     System.out.println("Researcher " + (researcher.getId())
                             + " can select up to 3 pieces of equipment of the same type.");
                 }
-                // 5. Assign equipment to a researcher
+                // 4. Assign equipment to a researcher
                 for (int i = 0; i < 3; i++) {
                     Equipment equipment = null;
                     ShortHand shortHand;
@@ -171,9 +174,9 @@ public class LakePuzzle {
                             System.out.println(e.getMessage());
                             continue;
                         }
-                        equipmentStorage.remove(equipment);
+                        equipmentStorage.remove(equipment);     // Remove taken equipment from the equipment storage
                         if (researcher.getId() == 1) {
-                            System.out.print("- Contents of the bag of Researcher " + researcher.getId() + ": ");
+                            System.out.print("- Contents of the bag of Researcher " + researcher.getId() + ": ");   // Display the contents of the current bag
                             for (Equipment e : researcher.getEquipmentBagArray()) {
                                 System.out.print(e.showOnMap().toLowerCase() + ", ");
                             }
@@ -181,18 +184,18 @@ public class LakePuzzle {
                         }
                         break;
                     }
-                    if (shortHand == ShortHand.NO) {
+                    if (shortHand == ShortHand.NO) {            // If the researcher decides to stop taking equipment
                         break;
                     }
                 }
 
-                System.out.print("- The final contents of the bag of Researcher " + researcher.getId() + ":");
+                System.out.print("- The final contents of the bag of Researcher " + researcher.getId() + ":");  // Display the final contents of the bag
                 for (Equipment e : researcher.getEquipmentBagArray()) {
                     System.out.print(e.showOnMap().toLowerCase() + ", ");
                 }
                 System.out.println();
 
-                if (researcher.getId() == 1) {
+                if (researcher.getId() == 1) {               // The researcher's first movement is handled differently
                     System.out.println("=====> Researcher " + researcher.getId()
                             + " heads out to the lake. Select a direction to slide ([U] Up, [D] Down, [L] Left, [R] Right):");
                 } else {
@@ -203,7 +206,7 @@ public class LakePuzzle {
                 while (true) {
                     try {
                         direction = getDirection(lake);
-                        if (direction == 'U') {
+                        if (direction == 'U') {            // If the direction is up, the researcher's request will be denied
                             throw new UnavailableDirectionException(
                                     "*** The input direction is unavailable. Please enter an available direction:");
                         }
@@ -214,23 +217,23 @@ public class LakePuzzle {
                     break;
                 }
 
-                State state = slide(lake, researcher, researcherRow, researcherColumn, direction);
+                State state = slide(lake, researcher, researcherRow, researcherColumn, direction);  // Slide the researcher
 
-                setIsInjured(determineInjury(state, researcher));
+                setIsInjured(determineInjury(state, researcher));   // Determine if the researcher is injured
 
                 while (true) {
-                    switch (state) {
-                        case LARGE_WOODEN_BOARD:
+                    switch (state) {    // Handle the state of the researcher
+                        case LARGE_WOODEN_BOARD:    // If the researcher encounters a large wooden board
                             lake.showLake();
                             System.out.println("=====> Researcher " + researcher.getId()
                                     + " manages to stop safely on a Wooden Board.");
                             break;
-                        case CLIMBING_EQUIPMENT:
+                        case CLIMBING_EQUIPMENT:    // If the researcher encounters climbing equipment
                             lake.showLake();
                             System.out.println("=====> Researcher " + researcher.getId()
                                     + " manages to climb back up the cliff using the Climbing Equipment.");
                             break;
-                        case CLIFF_EDGE:
+                        case CLIFF_EDGE:            // If the researcher encounters a cliff edge
                             if (getIsInjured()) {
                                 System.out.println("=====> Researcher " + researcher.getId()
                                         + " falls off the cliff and gets injured.");
@@ -245,7 +248,7 @@ public class LakePuzzle {
                                         + " sets the Climbing Equipment and manages to climb back up the cliff.");
                             }
                             break;
-                        case HOLE_IN_ICE:
+                        case HOLE_IN_ICE:           // If the researcher encounters a hole in the ice
                             if (getIsInjured()) {
                                 System.out.println("=====> Researcher " + researcher.getId()
                                         + " falls into a hole in the ice and gets injured.");
@@ -259,7 +262,7 @@ public class LakePuzzle {
                                         + " covers the ice with the board and starts standing on it. ");
                             }
                             break;
-                        case ICE_SPIKES:
+                        case ICE_SPIKES:            // If the researcher encounters ice spikes
                             if (getIsInjured()) {
                                 System.out.println("=====> The ice spikes falls on Researcher " + researcher.getId()
                                         + "'s head and injures the Researcher.");
@@ -274,11 +277,11 @@ public class LakePuzzle {
 
                             }
                             break;
-                        case IMAP_PLACEABLE:
+                        case IMAP_PLACEABLE:        // If the researcher encounters any other IMapPlaceable object
                             lake.showLake();
                             System.out.println("=====> Researcher " + researcher.getId() + " manages to stop safely.");
                             break;
-                        case ENTERANCE:
+                        case ENTERANCE:             // If the researcher reaches the entrance
                             lake.showLake();
                             System.out.println("=====> Researcher " + researcher.getId()
                                     + " has reached the entrance. The researcher empties their bag into the equipment storage.");
@@ -288,7 +291,7 @@ public class LakePuzzle {
                             break;
 
                     }
-                    if (getIsInjured() || state == State.ENTERANCE) {
+                    if (getIsInjured() || state == State.ENTERANCE) {       // If the researcher is injured or reaches the entrance, the loop will end
                         break;
                     }
                     System.out.println("[1] Continue moving on the ice. \r\n" + //
@@ -296,18 +299,18 @@ public class LakePuzzle {
                             "[3] Sit on the ground and let the other researchers head out to the lake. \r\n" + //
                             "Choose the action of Researcher " + researcher.getId() + ":");
                     int selection = -1;
-                    while (true) {
+                    while (true) {                  // Handle the researcher's selection
                         selection = getSelection(3);
                         switch (selection) {
-                            case 1:
+                            case 1:                 // If the researcher decides to continue moving
                                 System.out.println("Select a direction to slide:");
                                 direction = getDirection(lake);
                                 state = slide(lake, researcher, researcherRow, researcherColumn, direction);
                                 setIsInjured(determineInjury(state, researcher));
                                 break;
-                            case 2:
+                            case 2:                 // If the researcher decides to perform an experiment
                                 System.out.println("Select an experiment to perform:");
-                                try {
+                                try {               // Check if the researcher is carrying any research equipment
                                     researcher.carryingResearchEquipment();
                                 } catch (UnavailableEquipmentException e) {
                                     System.out.println("Researcher " + researcher.getId()
@@ -321,61 +324,58 @@ public class LakePuzzle {
 
                                     try {
                                         shortHand = ShortHand.valueOf(getShorthand().toUpperCase());
-                                    } catch (IllegalArgumentException e) {
+                                    } catch (IllegalArgumentException e) {  // If the input is invalid, the user will be prompted to enter a valid input
                                         System.out.println("Invalid input. Please enter a valid equipment short name:");
                                         continue;
                                     }
                                     break;
                                 }
 
-                                Equipment equipment = getEquipment(shortHand);
+                                Equipment equipment = getEquipment(shortHand);  // Get the equipment object from the short hand
 
-                                for (Equipment e : researcher.getEquipmentBagArray()) {
+                                for (Equipment e : researcher.getEquipmentBagArray()) { // Check if the any equipment of this class is in the researcher's bag
                                     if (e.getClass().equals(equipment.getClass())) {
                                         equipment = e;
                                         break;
                                     }
                                 }
 
-                                if (equipment.getId() == -1) {
+                                if (equipment.getId() == -1) {  // If the equipment is not found in the researcher's bag
                                     System.out.println("*** The selected equipment is not in the equipment bag.");
                                     System.out.println("Choose the action of Researcher " + researcher.getId() + ":");
                                     continue;
                                 }
 
-                                try {
+                                try {   // Check if the equipment can be placed in the current location
                                     isValidLocationForExperiment(lake, equipment);
                                 } catch (IncompatibleResearchEquipmentLocationException e) {
                                     System.out.println(e.getMessage());
                                     System.out.println("Choose the action of Researcher " + researcher.getId() + ":");
                                     continue;
                                 }
-
+                                // If the equipment can be placed in the current location, the equipment will be placed
                                 lake.setObject(researcherRow, researcherColumn, researcher.useEquipment(equipment));
                                 System.out.println(
                                         "--- The selected research equipment has been placed in the current location.");
-                                placedEquipments = checkSuccess(equipment, experiments, placedEquipments);
+                                placedEquipments = checkSuccess(equipment, experiments, placedEquipments);  // Check if the goal is reached
                                 break;
-                            case 3:
+                            case 3:    // If the researcher decides to sit on the ground
                                 break;
                         }
                         break;
                     }
-                    if (selection == 3) {
+                    if (selection == 3) {   // If the researcher decides to sit on the ground, the selection loop will end
                         break;
                     }
                 }
-                if (isInjured) {
+                if (isInjured) {    // If the researcher is injured, the game will end
                     break;
                 }
             }
 
-            // 6. Start an experiment
-            // 7. Exit
-
         }
 
-        private String getShorthand() {
+        private String getShorthand() { // private method for getting shorthand inputs
             String input;
             while (true) {
                 input = scanner.nextLine().trim();
@@ -388,7 +388,7 @@ public class LakePuzzle {
             return input.toLowerCase();
         }
 
-        private int getSelection(int upperBound) {
+        private int getSelection(int upperBound) {  // private method for getting selection inputs
             int selection;
             while (true) {
                 try {
@@ -405,7 +405,7 @@ public class LakePuzzle {
             return selection;
         }
 
-        private char getDirection(FrozenLake lake) {
+        private char getDirection(FrozenLake lake) {    // private method for getting direction inputs
             String input;
             while (true) {
                 input = scanner.nextLine().trim();
@@ -425,7 +425,7 @@ public class LakePuzzle {
             return (input.toUpperCase().charAt(0));
         }
 
-        private boolean checkIfDirectionIsAvailable(FrozenLake lake, char direction)
+        private boolean checkIfDirectionIsAvailable(FrozenLake lake, char direction)    // private method for checking if a direction is available to slide
                 throws UnavailableDirectionException {
             int row = getResearcherRow();
             int col = getResearcherColumn();
@@ -463,12 +463,11 @@ public class LakePuzzle {
             return isValid;
         }
 
-        enum State {
+        enum State {    // Enum for the state of the researcher after sliding
             LARGE_WOODEN_BOARD, CLIMBING_EQUIPMENT, CLIFF_EDGE, HOLE_IN_ICE, ICE_SPIKES, IMAP_PLACEABLE, ENTERANCE;
         }
 
-        private boolean determineInjury(State state, Researcher researcher) {
-            boolean isInjured = true;
+        private boolean determineInjury(State state, Researcher researcher) {   // private method for determining if the researcher has item to overcome a dangerous hazard            boolean isInjured = true;
             Equipment neededEquipment = null;
             switch (state) {
                 case CLIFF_EDGE:
@@ -493,7 +492,7 @@ public class LakePuzzle {
             return isInjured;
         }
 
-        private Equipment getEquipment(ShortHand shortHand) {
+        private Equipment getEquipment(ShortHand shortHand) {   // private method for getting equipment objects from shorthand inputs
             Equipment equipment = null;
             switch (shortHand) {
                 case TD:
@@ -523,14 +522,14 @@ public class LakePuzzle {
             return equipment;
         }
 
-        private boolean isValidLocationForExperiment(FrozenLake lake, Equipment equipment)
+        private boolean isValidLocationForExperiment(FrozenLake lake, Equipment equipment)  // private method for checking if the location is valid to put an experiment
                 throws IncompatibleResearchEquipmentLocationException {
             int row = getResearcherRow();
             int col = getResearcherColumn();
 
             ResearchEquipment researchEquipment = (ResearchEquipment) equipment;
 
-            if (researchEquipment instanceof TemperatureDetector) {
+            if (researchEquipment instanceof TemperatureDetector) { // For temperature detector there must be no ice block or wall directly adjacent
                 if ((lake.getPriorityObject(row - 1, col) instanceof IceBlock) ||
                         (lake.getPriorityObject(row + 1, col) instanceof IceBlock) ||
                         (lake.getPriorityObject(row, col - 1) instanceof IceBlock) ||
@@ -543,7 +542,7 @@ public class LakePuzzle {
                             "*** The selected research equipment is incompatible with the current location.");
                 }
 
-            } else if (researchEquipment instanceof WindSpeedDetector) {
+            } else if (researchEquipment instanceof WindSpeedDetector) { // For wind speed detector there must be no dangerous hazard directly adjacent
                 if ((lake.getPriorityObject(row - 1, col) instanceof IDangerousHazard) ||
                         (lake.getPriorityObject(row + 1, col) instanceof IDangerousHazard) ||
                         (lake.getPriorityObject(row, col - 1) instanceof IDangerousHazard) ||
@@ -551,7 +550,7 @@ public class LakePuzzle {
                     throw new IncompatibleResearchEquipmentLocationException(
                             "*** The selected research equipment is incompatible with the current location.");
                 }
-            } else if (researchEquipment instanceof Camera) {
+            } else if (researchEquipment instanceof Camera) {           // For camera there must be no hazard between cliff edge and camera's location
                 int i = 1;
                 while (true) {
                     switch (getCliffSide()) {
@@ -594,7 +593,7 @@ public class LakePuzzle {
                     }
                 }
 
-            } else if (researchEquipment instanceof ChiselingEquipment) {
+            } else if (researchEquipment instanceof ChiselingEquipment) {   // For chiseling equipment there must be ice block directly adjacent
                 if ((lake.getPriorityObject(row - 1, col) instanceof IceBlock) ||
                         (lake.getPriorityObject(row + 1, col) instanceof IceBlock) ||
                         (lake.getPriorityObject(row, col - 1) instanceof IceBlock) ||
@@ -608,18 +607,18 @@ public class LakePuzzle {
             return false;
         }
 
-        private Set<ResearchEquipment> checkSuccess(Equipment equipment, Set<Experiment> experiments,Set<ResearchEquipment> placedEquipments) {
+        private Set<ResearchEquipment> checkSuccess(Equipment equipment, Set<Experiment> experiments,Set<ResearchEquipment> placedEquipments) { // private method for checking if the goal is reached
             ResearchEquipment researchEquipment = (ResearchEquipment) equipment;
             placedEquipments.add(researchEquipment);
             Set<ResearchEquipment> goalEquipments = new HashSet<ResearchEquipment>();
             Set<Experiment> completedExperiments = new HashSet<Experiment>();
-            for (ResearchEquipment e : placedEquipments) {
+            for (ResearchEquipment e : placedEquipments) {  // Check if placed equipments fulfill the experiments
                 if (experiments.contains(e.getExperiment())) {
                     completedExperiments.add(e.getExperiment());
                     goalEquipments.add(e);
                 }
             }
-            if (completedExperiments.size() == experiments.size()) {
+            if (completedExperiments.size() == experiments.size()) {    // If all experiments are completed, the goal is reached and the game will end
                 System.out.println("-----------> Research goal(s) have been accomplished. Here are their results:\n");
                 for (ResearchEquipment e : goalEquipments) {
                     System.out.println("--" + e.report());
@@ -631,8 +630,13 @@ public class LakePuzzle {
         }
     }
 
+    /**
+     * Slides the researcher in the specified direction until an obstacle is encountered.
+     *
+     * @return The state of the menu after the slide, indicating the type of obstacle encountered.
+     */
     public Menu.State slide(FrozenLake lake, Researcher researcher, int researcherRow, int researcherColumn,
-            char direction) {
+            char direction) {   // Method for sliding the researcher
         int row = researcherRow;
         int col = researcherColumn;
         Menu.State state = null;
@@ -641,7 +645,7 @@ public class LakePuzzle {
         lake.removeResearcher(row, col);
 
         while (true) {
-            switch (direction) {
+            switch (direction) {    // Check the direction of the slide
                 case 'U':
                     if (lake.getPriorityObject(row - i, col) instanceof LargeWoodenBoard) {
                         this.menu.setResearcherRow(row - i);
@@ -807,7 +811,7 @@ public class LakePuzzle {
         int experimentCount = (int) (Math.random() * 4) + 1; // Random number between 1 and 4
 
         Set<Experiment> experiments = new HashSet<Experiment>();
-        // Create 3 experiments
+        // Create given number of experiments
         while (experiments.size() < experimentCount) {
             Experiment experiment = Experiment.values()[(int) (Math.random() * Experiment.values().length)];
             experiments.add(experiment);
