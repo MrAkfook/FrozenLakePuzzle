@@ -2,6 +2,22 @@ package Equipment;
 
 import Objects.Experiment;
 
+/**
+ * The ChiselingEquipment class extends the ResearchEquipment class and represents
+ * a specific type of equipment used for chiseling ice blocks in a research context.
+ * 
+ * This class provides constructors for creating chiseling equipment with a specified ID,
+ * a default ID, or by copying another chiseling equipment's properties. It also includes
+ * methods to get the weight of the ice block, generate a report of the equipment, and 
+ * display the equipment on a map.
+ * 
+ * The equals method is overridden to compare chiseling equipment objects based on their
+ * ice block weight and inherited properties.
+ * 
+ * The getExperiment method returns the specific experiment type associated with this equipment.
+ * 
+ * 
+ */
 public class ChiselingEquipment extends ResearchEquipment{
 
     private double iceBlockWeight;

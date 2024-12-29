@@ -2,6 +2,19 @@ package Equipment;
 
 import Objects.Experiment;
 
+/**
+ * The TemperatureDetector class extends the ResearchEquipment class and represents
+ * a temperature detecting equipment item with a unique identifier and a temperature
+ * value in degrees Celsius ranging from -30 to 0.
+ * 
+ * This class provides constructors for creating a TemperatureDetector with a specified ID,
+ * a default ID, or by copying another TemperatureDetector's properties. It also provides
+ * methods to get the temperature, generate a report, show the equipment on a map, and 
+ * compare TemperatureDetector objects based on their properties.
+ * 
+ * The getExperiment method returns the type of experiment associated with this equipment.
+ * 
+ */
 public class TemperatureDetector extends ResearchEquipment{
 
     private int temperature; // temperature in degrees Celsius -30 to 0
