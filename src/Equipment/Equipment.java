@@ -2,6 +2,18 @@ package Equipment;
 
 import Interfaces.IMapPlaceable;
 
+/**
+ * The Equipment class is an abstract class that implements the IMapPlaceable interface.
+ * It represents an equipment item with a unique identifier.
+ * 
+ * This class provides constructors for creating equipment with a specified ID, 
+ * a default ID, or by copying another equipment's ID. It also provides methods 
+ * to get and set the ID, and an abstract method to show the equipment on a map.</p>
+ * 
+ * The equals method is overridden to compare equipment objects based on their IDs.</p>
+ * 
+ * 
+ */
 public abstract class Equipment implements IMapPlaceable{
     private int id;
 
