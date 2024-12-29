@@ -1,6 +1,5 @@
-package App;
+package Lake;
 
-import Lake.FrozenLake;
 import Objects.*;
 import java.util.Queue;
 import java.util.Scanner;
@@ -35,11 +34,8 @@ public class LakePuzzle {
         equipmentStorage = createEquipmentSet(2);
     }
 
-    public static void main(String[] args) throws Exception {
-        LakePuzzle lakePuzzle = new LakePuzzle();
-        lakePuzzle.menu.start(lakePuzzle.lake, lakePuzzle.researchers, lakePuzzle.experiments,
-                lakePuzzle.equipmentStorage);
-
+    public void startPuzzle() {
+        menu.start(lake, researchers, experiments, equipmentStorage);
     }
 
     public int getCliffSide() {
