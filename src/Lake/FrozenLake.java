@@ -11,6 +11,12 @@ import Objects.IceBlock;
 import Objects.IceSpikes;
 import Objects.Wall;
 
+/**
+ * The FrozenLake class represents a frozen lake grid with various objects placed on it.
+ * It provides methods to initialize the lake with walls, cliff edges, ice blocks, and hazards.
+ * The lake is represented as a 2D ArrayList of LakeSquare objects.
+ */
+
 public class FrozenLake {
 
     private int rowCount;
@@ -30,10 +36,14 @@ public class FrozenLake {
         }
     }
 
+
+    // Default constructor
     public FrozenLake() {
         this(8, 11);
     }
 
+
+    // Copy constructor
     public FrozenLake(FrozenLake other) {
         this.rowCount = other.rowCount;
         this.columnCount = other.columnCount;
@@ -47,6 +57,7 @@ public class FrozenLake {
         }
     }
 
+    // Initialize the FrozenLake with walls, cliff edges, ice blocks, and hazards
     public FrozenLake initializeFrozenLake(int cliffSide) {
 
         // Set the entrance at the upper middle square
@@ -88,10 +99,12 @@ public class FrozenLake {
         frozenLake.get(row).get(column).setObject(object);
     }
 
+    // Remove a researcher from the specified row and column
     public void removeResearcher(int row, int column) {
         frozenLake.get(row).get(column).removeResearcher();
     }
 
+    // Display the current state of the lake
     public void showLake() {
         System.out.println("\n");
         System.out.println("      " + "-" + "------".repeat((int) (columnCount / 2)) + "-   -"
@@ -196,6 +209,7 @@ public class FrozenLake {
                 }
             }
         } else if (cliffSide == 3) {
+            // adding 2 ice blocks near the cliff edge, checking bottom row because the IceBlock count rule in row 
             int limit = ((rowUsed[rowCount]) ? 1: 2);
             for (int i = 0; i < limit; i++) { // If the last row is used when placing an IceBlock in enteranceColumn, place only one ice block
                 while (true) {
@@ -211,7 +225,7 @@ public class FrozenLake {
         }
             
 
-
+        // Place remaining IceBlocks
         while (iceBlocksPlaced < iceBlockCount) {
             int row = (int) (Math.random() * rowCount) + 1; // Random row (1-indexed)
 
@@ -235,6 +249,7 @@ public class FrozenLake {
 
     }
 
+    // Add 3 HoleInIce and 3 IceSpikes to the lake
     private void addHazards(FrozenLake lake, int entranceColumn, int cliffSide) {
         // Add 3 HoleInIce
         int holeCount = 0;
@@ -263,6 +278,7 @@ public class FrozenLake {
         }
     }
 
+    // Validate the placement of a HoleInIce
     private boolean isValidHoleInIcePlacement(FrozenLake lake, int row, int col, int entranceColumn, int cliffSide) {
         // Implementation of hazard placement validation
         // Check:
