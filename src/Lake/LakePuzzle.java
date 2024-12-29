@@ -619,6 +619,7 @@ public class LakePuzzle {
                 }
             }
             if (completedExperiments.size() == experiments.size()) {    // If all experiments are completed, the goal is reached and the game will end
+                lake.showLake();
                 System.out.println("-----------> Research goal(s) have been accomplished. Here are their results:\n");
                 for (ResearchEquipment e : goalEquipments) {
                     System.out.println("--" + e.report());
