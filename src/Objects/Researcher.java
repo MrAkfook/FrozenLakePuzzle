@@ -47,9 +47,9 @@ public class Researcher implements IMapPlaceable{
     // it returns the equipment that was used and removes it from the equipment bag
     public Equipment useEquipment(Equipment equipment){
         for(Equipment e :equipmentBag.toArray()){
-            if (e.getClass().equals(equipment.getClass()))
+            if (e.getClass().equals(equipment.getClass())){
                 equipmentBag.remove(e);
-                return e;
+                return e;}
         }
         return null;
     }
