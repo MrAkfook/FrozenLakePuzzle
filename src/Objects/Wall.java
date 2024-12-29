@@ -2,6 +2,13 @@ package Objects;
 
 import Interfaces.IMapPlaceable;
 
+/**
+ * The Wall class represents a wall in the Frozen Lake Puzzle game.
+ * 
+ * This class is used to create a wall object that can be placed on the map.
+ * It implements the IMapPlaceable interface to represent the wall on the map.
+ */
+
 public class Wall implements IMapPlaceable{
 
     int id;
@@ -23,6 +30,8 @@ public class Wall implements IMapPlaceable{
         return super.equals(other);
     }
 
+
+    // wall is represented by an empty string on the map
     @Override
     public String showOnMap() {
         return ""; 
